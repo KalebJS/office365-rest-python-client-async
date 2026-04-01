@@ -1,3 +1,5 @@
+import asyncio
+
 from office365.onedrive.driveitems.driveItem import DriveItem
 from office365.onedrive.workbooks.names.named_item import WorkbookNamedItem
 from office365.onedrive.workbooks.ranges.range import WorkbookRange
@@ -20,36 +22,39 @@ class TestExcelRanges(GraphTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.excel_file.delete_object().execute_query_retry()
+        async def _async_teardown():
+            await cls.excel_file.delete_object().execute_query_retry()
 
-    def test1_name_create(self):
-        result = self.__class__.excel_file.workbook.names.add(
+        asyncio.run(_async_teardown())
+
+    async def test1_name_create(self):
+        result = await self.__class__.excel_file.workbook.names.add(
             "test5", "=Sheet1!$F$15:$N$27", "Comment for the named item"
         ).execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.named_item = result
 
-    def test2_names_get(self):
-        result = self.__class__.named_item.get().execute_query_retry(2)
+    async def test2_names_get(self):
+        result = await self.__class__.named_item.get().execute_query_retry(2)
         self.assertIsNotNone(result.resource_path)
 
-    def test3_list_range(self):
-        result = self.__class__.named_item.range().execute_query()
+    async def test3_list_range(self):
+        result = await self.__class__.named_item.range().execute_query()
         self.assertIsNotNone(result.address)
         self.__class__.range = result
 
-    def test4_last_row(self):
-        result = self.__class__.range.last_row().execute_query()
+    async def test4_last_row(self):
+        result = await self.__class__.range.last_row().execute_query()
         self.assertIsNotNone(result.address)
 
     # def test4_insert_range(self):
     #    result = self.__class__.range.insert("Right").execute_query()
     #    self.assertIsNotNone(result.address)
 
-    def test6_used_range(self):
-        result = self.__class__.range.used_range().execute_query()
+    async def test6_used_range(self):
+        result = await self.__class__.range.used_range().execute_query()
         self.assertIsNotNone(result.address)
 
-    def test7_clear_range(self):
-        result = self.__class__.range.clear().execute_query()
+    async def test7_clear_range(self):
+        result = await self.__class__.range.clear().execute_query()
         self.assertIsNotNone(result.address)

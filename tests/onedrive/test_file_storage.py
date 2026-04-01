@@ -9,21 +9,21 @@ class TestFileStorage(GraphTestCase):
     target_container = None  # type: FileStorageContainer
 
     @requires_delegated_permission("FileStorageContainer.Selected")
-    def test1_create_file_storage_container(self):
-        result = self.client.storage.file_storage.containers.add(
+    async def test1_create_file_storage_container(self):
+        result = await self.client.storage.file_storage.containers.add(
             "My Application Storage Container"
         ).execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.target_container = result
 
     @requires_delegated_permission("FileStorageContainer.Selected")
-    def test2_create_container(self):
-        result = self.client.storage.file_storage.containers.add(
+    async def test2_create_container(self):
+        result = await self.client.storage.file_storage.containers.add(
             display_name="My Application Storage Container"
         ).execute_query()
         self.assertIsNotNone(result.resource_path)
 
     @requires_delegated_permission("FileStorageContainer.Selected")
-    def test3_list_containers(self):
-        result = self.client.storage.file_storage.containers.get().execute_query()
+    async def test3_list_containers(self):
+        result = await self.client.storage.file_storage.containers.get().execute_query()
         self.assertIsNotNone(result.resource_path)

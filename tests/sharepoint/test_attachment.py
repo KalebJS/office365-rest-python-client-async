@@ -1,3 +1,4 @@
+import asyncio
 import os.path
 from io import BytesIO
 from random import randint
@@ -24,59 +25,68 @@ class TestListItemAttachment(SPTestCase):
     def setUpClass(cls):
         super(TestListItemAttachment, cls).setUpClass()
         list_name = "Tasks" + str(randint(0, 10000))
-        target_list = cls.ensure_list(
-            cls.client.web,
-            ListCreationInformation(list_name, None, ListTemplateType.Tasks),
-        )
         item_properties = {"Title": "Approval Task"}
-        cls.target_item = target_list.add_item(item_properties).execute_query()
+
+        async def _async_setup():
+            target_list = await cls.ensure_list(
+                cls.client.web,
+                ListCreationInformation(list_name, None, ListTemplateType.Tasks),
+            )
+            cls.target_item = await target_list.add_item(
+                item_properties
+            ).execute_query()
+
+        asyncio.run(_async_setup())
 
     @classmethod
     def tearDownClass(cls):
-        cls.target_item.delete_object().execute_query()
+        async def _async_teardown():
+            await cls.target_item.delete_object().execute_query()
 
-    def test1_upload_attachment(self):
+        asyncio.run(_async_teardown())
+
+    async def test1_upload_attachment(self):
         with open(self.attachment_path, "rb") as content_file:
             file_content = content_file.read()
         attachment_file_information = AttachmentCreationInformation(
             self.attachment_file_name, file_content
         )
-        attachment = self.__class__.target_item.attachment_files.add(
+        attachment = await self.__class__.target_item.attachment_files.add(
             attachment_file_information
         ).execute_query()
         self.assertIsNotNone(attachment.file_name)
         self.__class__.target_attachment = attachment
 
-    def test2_list_attachments(self):
+    async def test2_list_attachments(self):
         attachment_files = (
-            self.__class__.target_item.attachment_files.get().execute_query()
+            await self.__class__.target_item.attachment_files.get().execute_query()
         )
         self.assertEqual(len(attachment_files), 1)
 
-    def test3_get_by_filename(self):
+    async def test3_get_by_filename(self):
         attachment_file = self.__class__.target_item.attachment_files.get_by_filename(
             self.attachment_file_name
         )
         self.assertIsNotNone(attachment_file.resource_path)
 
-    def test4_download_attachment(self):
+    async def test4_download_attachment(self):
         f = BytesIO()
-        self.__class__.target_attachment.download(f).execute_query()
+        await self.__class__.target_attachment.download(f).execute_query()
         self.assertIsNotNone(f.read())
 
-    def test5_update_attachment(self):
+    async def test5_update_attachment(self):
         local_f = BytesIO(b"new attachment content goes here")
-        self.__class__.target_attachment.upload(local_f).execute_query()
+        await self.__class__.target_attachment.upload(local_f).execute_query()
 
         remote_f = BytesIO()
-        self.__class__.target_attachment.download(remote_f).execute_query()
+        await self.__class__.target_attachment.download(remote_f).execute_query()
         local_content = local_f.getvalue()
         remote_content = remote_f.getvalue()
         self.assertEqual(local_content, remote_content)
 
-    def test6_delete_attachments(self):
-        self.__class__.target_attachment.delete_object().execute_query()
+    async def test6_delete_attachments(self):
+        await self.__class__.target_attachment.delete_object().execute_query()
         attachment_files = (
-            self.__class__.target_item.attachment_files.get().execute_query()
+            await self.__class__.target_item.attachment_files.get().execute_query()
         )
         self.assertEqual(len(attachment_files), 0)

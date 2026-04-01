@@ -1,11 +1,9 @@
 import json
 import re
 from email.message import Message
-from typing import AnyStr, Iterator, List, Tuple
+from typing import AnyStr, Dict, Iterator, List, Tuple
 
-import requests
-from requests import Response
-from requests.structures import CaseInsensitiveDict
+import httpx
 
 from office365.runtime.compat import (
     message_as_bytes_or_string,
@@ -32,15 +30,15 @@ class ODataBatchV3Request(ODataRequest):
         request.data = self._prepare_payload(query)
         return request
 
-    def process_response(self, response, query):
-        # type: (Response, BatchQuery) -> None
+    async def process_response(self, response, query):
+        # type: (httpx.Response, BatchQuery) -> None
         """Parses an HTTP response."""
         for sub_qry, sub_resp in self._extract_response(response, query):
             sub_resp.raise_for_status()
             super(ODataBatchV3Request, self).process_response(sub_resp, sub_qry)
 
     def _extract_response(self, response, query):
-        # type: (Response, BatchQuery) -> Iterator[Tuple[ClientQuery, Response]]
+        # type: (httpx.Response, BatchQuery) -> Iterator[Tuple[ClientQuery, httpx.Response]]
         """Parses a multipart/mixed response body from the position defined by the context."""
         content_type = response.headers["Content-Type"].encode("ascii")
         http_body = b"Content-Type: " + content_type + b"\r\n\r\n" + response.content
@@ -82,31 +80,34 @@ class ODataBatchV3Request(ODataRequest):
 
     @staticmethod
     def _normalize_headers(headers_raw):
-        # type: (List[str]) -> CaseInsensitiveDict
-        """ """
+        # type: (List[str]) -> Dict[str, str]
         headers = {}
         for header_line in headers_raw:
             k, v = header_line.split(":", 1)
             headers[k.title()] = v.strip()
-        return CaseInsensitiveDict(headers)
+        return headers
 
     def _deserialize_response(self, raw_response):
-        # type: (Message) -> Response
+        # type: (Message) -> httpx.Response
         response = raw_response.get_payload(decode=True)
         lines = list(filter(None, response.decode("utf-8").split("\r\n")))
         response_status_regex = "^HTTP/1\\.\\d (\\d{3}) (.*)$"
         status_result = re.match(response_status_regex, lines[0])
         status_info = status_result.groups()
 
-        resp = requests.Response()
-        resp.status_code = int(status_info[0])
+        status_code = int(status_info[0])
         if status_info[1] == "No Content" or len(lines) < 3:
-            resp.headers = self._normalize_headers(lines[1:])
-            resp._content = bytes(str("").encode("utf-8"))
+            headers = self._normalize_headers(lines[1:])
+            content = b""
         else:
-            resp._content = bytes(str(lines[-1]).encode("utf-8"))
-            resp.headers = self._normalize_headers(lines[1:-1])
-        return resp
+            content = str(lines[-1]).encode("utf-8")
+            headers = self._normalize_headers(lines[1:-1])
+
+        return httpx.Response(
+            status_code=status_code,
+            headers=headers,
+            content=content,
+        )
 
     @staticmethod
     def _serialize_request(request):

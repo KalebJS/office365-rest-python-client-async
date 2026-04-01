@@ -14,8 +14,8 @@ class TestCompliance(SPTestCase):
         # items = lib.items.filter("FSObjType eq 0").get().top(1).execute_query()
         # cls.list_item = items[0]
 
-    def test1_get_site_available_tags(self):
-        result = self.client.site.get_available_tags().execute_query()
+    async def test1_get_site_available_tags(self):
+        result = await self.client.site.get_available_tags().execute_query()
         self.assertIsNotNone(result.value)
 
     # def test_2_set_list_compliance_tag(self):
@@ -24,8 +24,8 @@ class TestCompliance(SPTestCase):
     #    ).execute_query()
     #    self.assertIsNotNone(result.value)
 
-    def test_3_get_list_compliance_tag(self):
-        result = self.target_list.get_compliance_tag().execute_query()
+    async def test_3_get_list_compliance_tag(self):
+        result = await self.target_list.get_compliance_tag().execute_query()
         self.assertIsNotNone(result.value)
 
     # def test_4_reset_list_compliance_tag(self):

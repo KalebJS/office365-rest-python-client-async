@@ -21,40 +21,42 @@ class TestContentType(TestCase):
     def tearDownClass(cls):
         pass
 
-    def test1_get_compatible_hub_content_types(self):
+    async def test1_get_compatible_hub_content_types(self):
         cts = (
-            self.client.sites.root.content_types.get_compatible_hub_content_types().execute_query()
+            await self.client.sites.root.content_types.get_compatible_hub_content_types().execute_query()
         )
         self.assertIsNotNone(cts.resource_path)
 
     @requires_delegated_permission("Sites.Manage.All", "Sites.FullControl.All")
-    def test2_create_site_content_type(self):
+    async def test2_create_site_content_type(self):
         name = "docSet" + uuid.uuid4().hex
-        ct = self.client.sites.root.content_types.add(
+        ct = await self.client.sites.root.content_types.add(
             name, "0x0120D520"
         ).execute_query()
         self.assertIsNotNone(ct.resource_path)
         self.__class__.target_ct = ct
 
     @requires_delegated_permission("Sites.FullControl.All")
-    def test3_publish(self):
-        result = self.__class__.target_ct.publish().execute_query()
+    async def test3_publish(self):
+        result = await self.__class__.target_ct.publish().execute_query()
         self.assertFalse(result.resource_path)
 
     @requires_delegated_permission("Sites.FullControl.All")
-    def test4_is_published(self):
-        result = self.__class__.target_ct.is_published().execute_query()
+    async def test4_is_published(self):
+        result = await self.__class__.target_ct.is_published().execute_query()
         self.assertTrue(result.value)
 
     @requires_delegated_permission("Sites.FullControl.All")
-    def test5_unpublish(self):
-        result = self.__class__.target_ct.unpublish().is_published().execute_query()
+    async def test5_unpublish(self):
+        result = (
+            await self.__class__.target_ct.unpublish().is_published().execute_query()
+        )
         self.assertFalse(result.value)
 
     @requires_delegated_permission("Sites.Manage.All", "Sites.FullControl.All")
-    def test6_delete_site_content_type(self):
+    async def test6_delete_site_content_type(self):
         ct_to_del = self.__class__.target_ct
-        ct_to_del.delete_object().execute_query()
+        await ct_to_del.delete_object().execute_query()
 
     @requires_delegated_permission(
         "Sites.Read.All",
@@ -62,8 +64,10 @@ class TestContentType(TestCase):
         "Sites.Manage.All",
         "Sites.ReadWrite.All",
     )
-    def test7_get_applicable_content_types_for_list(self):
+    async def test7_get_applicable_content_types_for_list(self):
         site = self.client.sites.root
-        doc_lib = site.lists["Documents"].get().execute_query()
-        cts = site.get_applicable_content_types_for_list(doc_lib.id).execute_query()
+        doc_lib = await site.lists["Documents"].get().execute_query()
+        cts = await site.get_applicable_content_types_for_list(
+            doc_lib.id
+        ).execute_query()
         self.assertIsNotNone(cts.resource_path)

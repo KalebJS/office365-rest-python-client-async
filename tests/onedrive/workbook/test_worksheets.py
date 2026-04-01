@@ -1,3 +1,5 @@
+import asyncio
+
 from office365.onedrive.driveitems.driveItem import DriveItem
 from office365.onedrive.workbooks.worksheets.protection_options import (
     WorkbookWorksheetProtectionOptions,
@@ -21,31 +23,36 @@ class TestExcelWorksheets(GraphTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.excel_file.delete_object().execute_query_retry()
+        async def _async_teardown():
+            await cls.excel_file.delete_object().execute_query_retry()
 
-    def test1_add_worksheet(self):
-        result = self.__class__.excel_file.workbook.worksheets.add(
+        asyncio.run(_async_teardown())
+
+    async def test1_add_worksheet(self):
+        result = await self.__class__.excel_file.workbook.worksheets.add(
             self.sheet_name
         ).execute_query()
         self.assertIsNotNone(result.resource_path)
 
-    def test2_list_worksheets(self):
-        result = self.__class__.excel_file.workbook.worksheets.get().execute_query()
+    async def test2_list_worksheets(self):
+        result = (
+            await self.__class__.excel_file.workbook.worksheets.get().execute_query()
+        )
         self.assertIsNotNone(result.resource_path)
         self.assertGreaterEqual(len(result), 1)
         self.__class__.worksheet = result[0]
 
-    def test3_used_range(self):
-        result = self.__class__.worksheet.used_range().execute_query()
+    async def test3_used_range(self):
+        result = await self.__class__.worksheet.used_range().execute_query()
         self.assertIsNotNone(result.address)
 
-    def test4_protect_worksheet(self):
+    async def test4_protect_worksheet(self):
         ws = self.__class__.worksheet
         options = WorkbookWorksheetProtectionOptions(allow_delete_rows=False)
-        ws.protection.protect(options).execute_query()
-        result = ws.protection.get().execute_query()
+        await ws.protection.protect(options).execute_query()
+        result = await ws.protection.get().execute_query()
         self.assertFalse(result.options.allowDeleteRows)
 
-    def test5_delete_worksheet(self):
+    async def test5_delete_worksheet(self):
         worksheet = self.__class__.excel_file.workbook.worksheets[self.sheet_name]
-        worksheet.delete_object().execute_query()
+        await worksheet.delete_object().execute_query()

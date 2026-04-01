@@ -12,47 +12,51 @@ class TestGraphUser(GraphTestCase):
     test_user = None  # type: User
     test_extension = None  # type: OpenTypeExtension
 
-    def test1_create_user(self):
+    async def test1_create_user(self):
         login = create_unique_name("testuser")
         password = create_unique_name("P@ssw0rd")
         profile = UserProfile("{0}@{1}".format(login, test_tenant), password)
-        new_user = self.client.users.add(profile).execute_query()
+        new_user = await self.client.users.add(profile).execute_query()
         self.assertIsNotNone(new_user.id)
         self.__class__.test_user = new_user
 
-    def test2_list_users(self):
-        result = self.client.users.top(1).get().execute_query()
+    async def test2_list_users(self):
+        result = await self.client.users.top(1).get().execute_query()
         self.assertEqual(len(result), 1)
         self.assertIsNotNone(result.resource_path)
 
-    def test3_get_users_count(self):
-        result = self.client.users.count().execute_query()
+    async def test3_get_users_count(self):
+        result = await self.client.users.count().execute_query()
         self.assertIsNotNone(result.value)
 
-    def test4_get_user_licences(self):
+    async def test4_get_user_licences(self):
         user = (
-            self.__class__.test_user.select(["assignedLicenses"]).get().execute_query()
+            await self.__class__.test_user.select(["assignedLicenses"])
+            .get()
+            .execute_query()
         )
         self.assertIsInstance(user.assigned_licenses, ClientValueCollection)
 
-    def test5_list_subscribed_skus(self):
-        skus = self.client.subscribed_skus.get().execute_query()
+    async def test5_list_subscribed_skus(self):
+        skus = await self.client.subscribed_skus.get().execute_query()
         self.assertIsNotNone(skus.resource_path)
 
-    def test6_user_remove_license(self):
+    async def test6_user_remove_license(self):
         pass
 
-    def test7_list_app_role_assignments(self):
-        result = self.__class__.test_user.app_role_assignments.get().execute_query()
+    async def test7_list_app_role_assignments(self):
+        result = (
+            await self.__class__.test_user.app_role_assignments.get().execute_query()
+        )
         self.assertIsNotNone(result.resource_path)
 
-    def test8_update_user(self):
+    async def test8_update_user(self):
         user_to_update = self.__class__.test_user
         prop_name = "city"
         prop_val = create_unique_name("city_")
-        user_to_update.set_property(prop_name, prop_val).update().execute_query()
+        await user_to_update.set_property(prop_name, prop_val).update().execute_query()
 
-        result = (
+        result = await (
             self.client.users.filter("{0} eq '{1}'".format(prop_name, prop_val))
             .get()
             .execute_query()
@@ -63,27 +67,27 @@ class TestGraphUser(GraphTestCase):
     #    result = self.__class__.test_user.check_member_groups(["fee2c45b-915a-4a64b130f4eb9e75525e"]).execute_query()
     #    self.assertIsNotNone(result.value)
 
-    def test_10_delete_user(self):
+    async def test_10_delete_user(self):
         user_to_delete = self.__class__.test_user
-        user_to_delete.delete_object(True).execute_query()
+        await user_to_delete.delete_object(True).execute_query()
 
-    def test_11_get_user_changes(self):
-        changed_users = self.client.users.delta.get().execute_query()
+    async def test_11_get_user_changes(self):
+        changed_users = await self.client.users.delta.get().execute_query()
         self.assertGreater(len(changed_users), 0)
 
-    def test_12_get_my_member_groups(self):
-        result = self.client.me.get_member_groups().execute_query()
+    async def test_12_get_my_member_groups(self):
+        result = await self.client.me.get_member_groups().execute_query()
         self.assertIsNotNone(result.value)
 
-    def test_13_create_extension(self):
-        result = self.client.me.add_extension("Com.Contoso.SSN2").execute_query()
+    async def test_13_create_extension(self):
+        result = await self.client.me.add_extension("Com.Contoso.SSN2").execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.test_extension = result
 
-    def test_14_get_extension(self):
-        result = self.client.me.extensions.get().execute_query()
+    async def test_14_get_extension(self):
+        result = await self.client.me.extensions.get().execute_query()
         self.assertGreater(len(result), 0)
 
-    def test_15_delete_extension(self):
-        result = self.__class__.test_extension.delete_object().execute_query()
+    async def test_15_delete_extension(self):
+        result = await self.__class__.test_extension.delete_object().execute_query()
         self.assertIsNotNone(result.resource_path)

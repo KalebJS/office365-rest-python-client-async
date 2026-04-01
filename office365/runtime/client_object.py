@@ -11,7 +11,7 @@ from typing import (
     Union,
 )
 
-from requests import Response
+import httpx
 from typing_extensions import Self
 
 from office365.runtime.client_request_exception import ClientRequestException
@@ -56,13 +56,13 @@ class ClientObject(object):
         self._query_options = QueryOptions()
         return self
 
-    def execute_query(self):
+    async def execute_query(self):
         # type: () -> Self
         """Submit request(s) to the server."""
-        self.context.execute_query()
+        await self.context.execute_query()
         return self
 
-    def execute_query_retry(
+    async def execute_query_retry(
         self,
         max_retry=5,
         timeout_secs=5,
@@ -77,11 +77,10 @@ class ClientObject(object):
         :param int timeout_secs: Seconds to wait before retrying the request.
         :param (office365.runtime.client_object.ClientObject)-> None success_callback: A callback to call
             if the request executes successfully.
-        :param (int, requests.exceptions.RequestException)-> None failure_callback: A callback to call if the request
-            fails to execute
+        :param (int, Exception)-> None failure_callback: A callback to call if the request fails to execute
         :param exceptions: tuple of exceptions that we retry
         """
-        self.context.execute_query_retry(
+        await self.context.execute_query_retry(
             max_retry=max_retry,
             timeout_secs=timeout_secs,
             success_callback=success_callback,
@@ -97,7 +96,7 @@ class ClientObject(object):
         return self
 
     def after_execute(self, action, execute_first=False, include_response=False):
-        # type: (Callable[[Self|Response], None], bool, bool) -> Self
+        # type: (Callable[[Self|httpx.Response], None], bool, bool) -> Self
         """Attach an event handler to client object which gets triggered after query is submitted to server"""
         self.context.after_query_execute(action, execute_first, include_response)
         return self

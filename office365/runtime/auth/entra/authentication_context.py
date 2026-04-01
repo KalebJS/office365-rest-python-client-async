@@ -30,12 +30,14 @@ class AuthenticationContext(object):
         self._token_callback = None
         self._environment = environment
 
-    def acquire_token(self):
+    async def acquire_token(self):
         # type: () -> TokenResponse
         """Acquire access token"""
+        import asyncio
+
         if not self._token_callback:
             raise ValueError("Token callback is not set.")
-        token_resp = self._token_callback()
+        token_resp = await asyncio.to_thread(self._token_callback)
         token = TokenResponse.from_json(token_resp)
         return token
 

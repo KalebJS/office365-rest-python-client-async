@@ -1,6 +1,6 @@
 import base64
 
-import requests
+import httpx
 
 from office365.entity_collection import EntityCollection
 from office365.outlook.mail.attachments.attachment import Attachment
@@ -46,8 +46,6 @@ class AttachmentCollection(EntityCollection[Attachment]):
     def resumable_upload(self, source_path, chunk_size=1000000, chunk_uploaded=None):
         """
         Create an upload session to allow your app to upload files up to the maximum file size.
-        An upload session allows your app to upload ranges of the file in sequential API requests,
-        which allows the transfer to be resumed if a connection is dropped while the upload is in progress.
 
         :param str source_path: Local file path
         :param int chunk_size: File chunk size
@@ -63,11 +61,11 @@ class AttachmentCollection(EntityCollection[Attachment]):
             self, {"AttachmentItem": AttachmentItem.create_file(source_path)}
         )
 
-        def _start_upload(result):
+        async def _start_upload(result):
             # type: (ClientResult[UploadSession]) -> None
             with open(source_path, "rb") as local_file:
                 session_request = UploadSessionRequest(
-                    local_file, chunk_size, chunk_uploaded
+                    local_file, chunk_size, self.context._http_client, chunk_uploaded
                 )
 
                 def _construct_request(request):
@@ -75,8 +73,8 @@ class AttachmentCollection(EntityCollection[Attachment]):
                     auth_token = parse_query_string(request.url, "authtoken")
                     request.set_header("Authorization", "Bearer {0}".format(auth_token))
 
-                def _process_response(response):
-                    # type: (requests.Response) -> None
+                async def _process_response(response):
+                    # type: (httpx.Response) -> None
                     location = response.headers.get("Location", None)
                     if location is None:
                         return
@@ -85,7 +83,7 @@ class AttachmentCollection(EntityCollection[Attachment]):
 
                 session_request.beforeExecute += _construct_request
                 session_request.afterExecute += _process_response
-                session_request.execute_query(qry)
+                await session_request.execute_query(qry)
 
         self.context.add_query(qry).after_query_execute(
             _start_upload, execute_first=True

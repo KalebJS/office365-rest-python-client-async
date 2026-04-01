@@ -78,14 +78,22 @@ class ClientObjectCollection(ClientObject, Generic[T]):
         self._data = [item for item in self._data if item != client_object]
         return self
 
-    def __iter__(self):
-        # type: () -> Iterator[T]
-        yield from self._data
-        if self._paged_mode:
-            while self.has_next:
-                self._get_next().execute_query()
-                next_items = self._data[self._current_pos :]
-                yield from next_items
+    def __aiter__(self):
+        self._aiter_pos = 0
+        return self
+
+    async def __anext__(self):
+        if self._aiter_pos < len(self._data):
+            item = self._data[self._aiter_pos]
+            self._aiter_pos += 1
+            return item
+        if self._paged_mode and self.has_next:
+            await self._get_next().execute_query()
+            if self._aiter_pos < len(self._data):
+                item = self._data[self._aiter_pos]
+                self._aiter_pos += 1
+                return item
+        raise StopAsyncIteration
 
     def __len__(self):
         # type: () -> int
@@ -153,9 +161,9 @@ class ClientObjectCollection(ClientObject, Generic[T]):
     def get(self):
         # type: () -> Self
 
-        def _loaded(col):
+        async def _loaded(col):
             # type: (Self) -> None
-            self._page_loaded.notify(self)
+            await self._page_loaded.notify(self)
 
         self.context.load(self).after_query_execute(_loaded)
         return self
@@ -164,7 +172,7 @@ class ClientObjectCollection(ClientObject, Generic[T]):
         # type: (int, Callable[[Self], None] | None) -> Self
         """Gets all the items in a collection, regardless of the size."""
 
-        def _page_loaded(col):
+        async def _page_loaded(col):
             # type: (Self) -> None
             if self.has_next:
                 self._get_next().after_execute(_page_loaded)
@@ -190,7 +198,7 @@ class ClientObjectCollection(ClientObject, Generic[T]):
         return_type = self.create_typed_object()
         self.add_child(return_type)
 
-        def _after_loaded(col):
+        async def _after_loaded(col):
             # type: (ClientObjectCollection) -> None
             if len(col) < 1:
                 message = "Not found for filter: {0}".format(self.query_options.filter)
@@ -213,7 +221,7 @@ class ClientObjectCollection(ClientObject, Generic[T]):
         return_type = self.create_typed_object()
         self.add_child(return_type)
 
-        def _after_loaded(col):
+        async def _after_loaded(col):
             # type: (ClientObjectCollection) -> None
             if len(col) == 0:
                 raise NotFoundException(return_type, expression)

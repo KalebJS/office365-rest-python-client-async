@@ -7,26 +7,30 @@ from tests.graph_case import GraphTestCase
 class TestDirectory(GraphTestCase):
     administrative_unit = None  # type: AdministrativeUnit
 
-    def test2_get_deleted_groups(self):
-        deleted_groups = self.client.directory.deleted_groups.get().execute_query()
+    async def test2_get_deleted_groups(self):
+        deleted_groups = (
+            await self.client.directory.deleted_groups.get().execute_query()
+        )
         self.assertEqual(deleted_groups.resource_path.segment, "microsoft.graph.group")
 
-    def test3_get_deleted_users(self):
-        deleted_users = self.client.directory.deleted_users.get().execute_query()
+    async def test3_get_deleted_users(self):
+        deleted_users = await self.client.directory.deleted_users.get().execute_query()
         self.assertEqual(deleted_users.resource_path.segment, "microsoft.graph.user")
 
-    def test4_get_deleted_applications(self):
-        deleted_apps = self.client.directory.deleted_applications.get().execute_query()
+    async def test4_get_deleted_applications(self):
+        deleted_apps = (
+            await self.client.directory.deleted_applications.get().execute_query()
+        )
         self.assertEqual(
             deleted_apps.resource_path.segment, "microsoft.graph.application"
         )
 
-    def test5_get_member_objects(self):
-        result = self.client.me.get_member_objects().execute_query()
+    async def test5_get_member_objects(self):
+        result = await self.client.me.get_member_objects().execute_query()
         self.assertIsInstance(result.value, ClientValueCollection)
 
-    def test6_list_directory_roles(self):
-        result = self.client.directory_roles.get().execute_query()
+    async def test6_list_directory_roles(self):
+        result = await self.client.directory_roles.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     # Privileged Role Administrator is required
@@ -45,17 +49,19 @@ class TestDirectory(GraphTestCase):
         "Directory.Read.All",
         "Directory.ReadWrite.All",
     )
-    def test8_list_administrative_units(self):
-        result = self.client.directory.administrative_units.get().execute_query()
+    async def test8_list_administrative_units(self):
+        result = await self.client.directory.administrative_units.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     # def test_10_delete_administrative_unit(self):
     #    self.__class__.administrative_unit.delete_object().execute_query()
 
-    def test_11_list_directory_role_templates(self):
-        result = self.client.directory_role_templates.get().execute_query()
+    async def test_11_list_directory_role_templates(self):
+        result = await self.client.directory_role_templates.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
-    def test_12_list_device_local_credentials(self):
-        result = self.client.directory.device_local_credentials.get().execute_query()
+    async def test_12_list_device_local_credentials(self):
+        result = (
+            await self.client.directory.device_local_credentials.get().execute_query()
+        )
         self.assertIsNotNone(result.resource_path)

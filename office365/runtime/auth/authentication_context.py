@@ -1,3 +1,4 @@
+import asyncio
 import json
 import sys
 from datetime import datetime, timedelta, timezone
@@ -107,9 +108,6 @@ class AuthenticationContext(object):
         """
         Initializes a client to acquire a token interactively i.e. via a local browser.
 
-        Prerequisite: In Azure Portal, configure the Redirect URI of your
-        "Mobile and Desktop application" as ``http://localhost``.
-
         :param str tenant: Tenant name, for example: contoso.onmicrosoft.com
         :param str client_id: The OAuth client id of the calling application.
         :param list[str] or None scopes:  Scopes requested to access a protected API (a resource)
@@ -177,14 +175,14 @@ class AuthenticationContext(object):
         """
         Initializes a client to acquire a token from a callback
 
-        :param () -> dict token_func: A token callback
+        :param () -> dict token_func: A sync token callback (will be run in a thread)
         """
 
-        def _authenticate(request):
+        async def _authenticate(request):
             request_time = datetime.now(timezone.utc)
 
             if self._cached_token is None or request_time > self._token_expires:
-                self._cached_token = token_func()
+                self._cached_token = await asyncio.to_thread(token_func)
                 if hasattr(self._cached_token, "expiresIn"):
                     self._token_expires = request_time + timedelta(
                         seconds=self._cached_token.expiresIn
@@ -206,9 +204,9 @@ class AuthenticationContext(object):
         """
         provider = CookieAuthProvider(cookie_source, ttl_seconds)
 
-        def _authenticate(request):
+        async def _authenticate(request):
             # type: (RequestOptions) -> None
-            provider.authenticate_request(request)
+            await provider.authenticate_request(request)
 
         self._authenticate = _authenticate
         return self
@@ -241,9 +239,9 @@ class AuthenticationContext(object):
         else:
             raise ValueError("Unknown credential type")
 
-        def _authenticate(request):
+        async def _authenticate(request):
             # type: (RequestOptions) -> None
-            provider.authenticate_request(request)
+            await provider.authenticate_request(request)
 
         self._authenticate = _authenticate
         return self
@@ -259,9 +257,9 @@ class AuthenticationContext(object):
         """
         provider = SamlTokenProvider(self.url, username, password, self._browser_mode)
 
-        def _authenticate(request):
+        async def _authenticate(request):
             # type: (RequestOptions) -> None
-            provider.authenticate_request(request)
+            await provider.authenticate_request(request)
 
         self._authenticate = _authenticate
         return self
@@ -277,16 +275,16 @@ class AuthenticationContext(object):
         """
         provider = ACSTokenProvider(self.url, client_id, client_secret)
 
-        def _authenticate(request):
+        async def _authenticate(request):
             # type: (RequestOptions) -> None
-            provider.authenticate_request(request)
+            await provider.authenticate_request(request)
 
         self._authenticate = _authenticate
         return self
 
-    def authenticate_request(self, request):
+    async def authenticate_request(self, request):
         # type: (RequestOptions) -> None
         """Authenticate request"""
         if self._authenticate is None:
             raise ValueError("Authentication credentials are missing or invalid")
-        self._authenticate(request)
+        await self._authenticate(request)

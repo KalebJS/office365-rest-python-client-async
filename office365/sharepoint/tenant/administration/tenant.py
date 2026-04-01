@@ -1,4 +1,4 @@
-import time
+import asyncio
 from typing import AnyStr, Optional
 
 from typing_extensions import Self
@@ -593,9 +593,8 @@ class Tenant(Entity):
     def _poll_site_status(self, site_url, polling_interval_secs):
         # type: (str, int) -> None
         states = [0, 1, 2]
-        time.sleep(polling_interval_secs)
 
-        def _after(items):
+        async def _after(items):
             completed = (
                 len(
                     [
@@ -607,6 +606,7 @@ class Tenant(Entity):
                 > 0
             )
             if not completed:
+                await asyncio.sleep(polling_interval_secs)
                 self._poll_site_status(site_url, polling_interval_secs)
 
         self.get_sites_by_state(states).after_execute(_after, execute_first=True)

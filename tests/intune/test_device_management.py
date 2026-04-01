@@ -7,8 +7,8 @@ class TestDeviceManagement(GraphTestCase):
         "DeviceManagementServiceConfig.Read.All",
         "DeviceManagementServiceConfig.ReadWrite.All",
     )
-    def test1_get(self):
-        result = self.client.device_management.get().execute_query()
+    async def test1_get(self):
+        result = await self.client.device_management.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     # def test2_get_effective_permissions(self):

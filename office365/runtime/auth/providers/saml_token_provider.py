@@ -5,8 +5,7 @@ from typing import Optional
 from xml.dom import minidom
 from xml.etree import ElementTree
 
-import requests
-import requests.utils
+import httpx
 
 import office365.logger
 from office365.runtime.auth.auth_cookies import AuthCookies
@@ -66,7 +65,7 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
         for key in self.__ns_prefixes.keys():
             ElementTree.register_namespace(key, self.__ns_prefixes[key][1:-1])
 
-    def authenticate_request(self, request):
+    async def authenticate_request(self, request):
         """
         Authenticate request handler
         """
@@ -78,35 +77,38 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
             or request_time >= self._sts_profile.expires
         ):
             self._sts_profile.reset()
-            self._cached_auth_cookies = self.get_authentication_cookie()
+            self._cached_auth_cookies = await self.get_authentication_cookie()
         logger.debug_secrets(self._cached_auth_cookies)
         request.set_header("Cookie", self._cached_auth_cookies.cookie_header)
 
-    def get_authentication_cookie(self):
+    async def get_authentication_cookie(self):
         """Acquire authentication cookie"""
         logger = self.logger(self.get_authentication_cookie.__name__)
         logger.debug("get_authentication_cookie called")
 
         try:
             logger.debug("Acquiring Access Token..")
-            user_realm = self._get_user_realm()
+            user_realm = await self._get_user_realm()
             if user_realm.IsFederated:
-                token = self._acquire_service_token_from_adfs(user_realm.STSAuthUrl)
+                token = await self._acquire_service_token_from_adfs(
+                    user_realm.STSAuthUrl
+                )
             else:
-                token = self._acquire_service_token()
-            return self._get_authentication_cookie(token, user_realm.IsFederated)
-        except requests.exceptions.RequestException as e:
+                token = await self._acquire_service_token()
+            return await self._get_authentication_cookie(token, user_realm.IsFederated)
+        except httpx.HTTPStatusError as e:
             logger.error(e.response.text)
             self.error = "Error: {}".format(e)
             raise ValueError(e.response.text)
 
-    def _get_user_realm(self):
+    async def _get_user_realm(self):
         """Get User Realm"""
-        resp = requests.post(
-            self._sts_profile.user_realm_service_url,
-            data="login={0}&xml=1".format(self._username),
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                self._sts_profile.user_realm_service_url,
+                content="login={0}&xml=1".format(self._username).encode(),
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
         xml = ElementTree.fromstring(resp.content)
         node = xml.find("NameSpaceType")
         if node is not None:
@@ -117,7 +119,7 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
             return info
         return None
 
-    def _acquire_service_token_from_adfs(self, adfs_url):
+    async def _acquire_service_token_from_adfs(self, adfs_url):
         logger = self.logger(self._acquire_service_token_from_adfs.__name__)
 
         payload = self._prepare_request_from_template(
@@ -133,11 +135,12 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
             },
         )
 
-        response = requests.post(
-            adfs_url,
-            data=payload,
-            headers={"Content-Type": "application/soap+xml; charset=utf-8"},
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                adfs_url,
+                content=payload.encode() if isinstance(payload, str) else payload,
+                headers={"Content-Type": "application/soap+xml; charset=utf-8"},
+            )
         dom = minidom.parseString(response.content.decode())
         assertion_node = dom.getElementsByTagNameNS(
             "urn:oasis:names:tc:SAML:1.0:assertion", "Assertion"
@@ -153,12 +156,12 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
                 },
             )
 
-            # 3. get security token
-            response = requests.post(
-                self._sts_profile.security_token_service_url,
-                data=payload,
-                headers={"Content-Type": "application/soap+xml"},
-            )
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    self._sts_profile.security_token_service_url,
+                    content=payload.encode() if isinstance(payload, str) else payload,
+                    headers={"Content-Type": "application/soap+xml"},
+                )
             token = self._process_service_token_response(response)
             logger.debug_secrets("security token: %s", token)
             return token
@@ -169,7 +172,7 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
             logger.error(self.error)
             return None
 
-    def _acquire_service_token(self):
+    async def _acquire_service_token(self):
         """Retrieve service token"""
         logger = self.logger(self._acquire_service_token.__name__)
 
@@ -186,11 +189,12 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
             },
         )
         logger.debug_secrets("options: %s", payload)
-        response = requests.post(
-            self._sts_profile.security_token_service_url,
-            data=payload,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                self._sts_profile.security_token_service_url,
+                content=payload.encode() if isinstance(payload, str) else payload,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
         token = self._process_service_token_response(response)
         logger.debug_secrets("security token: %s", token)
         return token
@@ -245,7 +249,7 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
         logger.debug_secrets("token: %s", token)
         return token.text
 
-    def _get_authentication_cookie(self, security_token, federated=False):
+    async def _get_authentication_cookie(self, security_token, federated=False):
         """Retrieve auth cookie from STS
 
         :type federated: bool
@@ -253,36 +257,41 @@ class SamlTokenProvider(AuthenticationProvider, office365.logger.LoggerContext):
         """
         logger = self.logger(self._get_authentication_cookie.__name__)
 
-        session = requests.session()
-        logger.debug_secrets(
-            "session: %s\nsession.post(%s, data=%s)",
-            session,
-            self._sts_profile.signin_page_url,
-            security_token,
-        )
-        if not federated or self._browser_mode:
-            headers = {"Content-Type": "application/x-www-form-urlencoded"}
-            if self._browser_mode:
-                headers["User-Agent"] = (
-                    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"
+        async with httpx.AsyncClient(follow_redirects=True) as session:
+            logger.debug_secrets(
+                "session.post(%s, data=%s)",
+                self._sts_profile.signin_page_url,
+                security_token,
+            )
+            if not federated or self._browser_mode:
+                headers = {"Content-Type": "application/x-www-form-urlencoded"}
+                if self._browser_mode:
+                    headers["User-Agent"] = (
+                        "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"
+                    )
+                await session.post(
+                    self._sts_profile.signin_page_url,
+                    content=(
+                        security_token.encode()
+                        if isinstance(security_token, str)
+                        else security_token
+                    ),
+                    headers=headers,
                 )
-            session.post(
-                self._sts_profile.signin_page_url, data=security_token, headers=headers
-            )
-        else:
-            idcrl_endpoint = "https://{}/_vti_bin/idcrl.svc/".format(
-                self._sts_profile.tenant
-            )
-            session.get(
-                idcrl_endpoint,
-                headers={
-                    "User-Agent": "Office365 Python Client",
-                    "X-IDCRL_ACCEPTED": "t",
-                    "Authorization": "BPOSIDCRL {0}".format(security_token),
-                },
-            )
-        logger.debug_secrets("session.cookies: %s", session.cookies)
-        cookies = AuthCookies(requests.utils.dict_from_cookiejar(session.cookies))
+            else:
+                idcrl_endpoint = "https://{}/_vti_bin/idcrl.svc/".format(
+                    self._sts_profile.tenant
+                )
+                await session.get(
+                    idcrl_endpoint,
+                    headers={
+                        "User-Agent": "Office365 Python Client",
+                        "X-IDCRL_ACCEPTED": "t",
+                        "Authorization": "BPOSIDCRL {0}".format(security_token),
+                    },
+                )
+            logger.debug_secrets("session.cookies: %s", session.cookies)
+            cookies = AuthCookies(dict(session.cookies))
         logger.debug_secrets("cookies: %s", cookies)
         if not cookies.is_valid:
             self.error = (

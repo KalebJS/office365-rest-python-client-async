@@ -15,6 +15,6 @@ class TestRooms(TestCase):
         )
 
     @requires_app_permission("Place.Read.All")
-    def test1_get_room_lists(self):
-        result = self.client.room_lists.get().execute_query()
+    async def test1_get_room_lists(self):
+        result = await self.client.room_lists.get().execute_query()
         self.assertIsNotNone(result.resource_path)

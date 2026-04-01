@@ -12,11 +12,12 @@ client = GraphClient(tenant=test_tenant).with_username_and_password(
 )
 
 files = {}
-with open("../data/Sample.html", "rb") as f, open(
-    "../data/office-logo-icon.jpg", "rb"
-) as img_f, open("../data/Sample.pdf", "rb") as pdf_f, open(
-    "../data/SharePoint User Guide.docx", "rb"
-) as word_f:
+with (
+    open("../data/Sample.html", "rb") as f,
+    open("../data/office-logo-icon.jpg", "rb") as img_f,
+    open("../data/Sample.pdf", "rb") as pdf_f,
+    open("../data/SharePoint User Guide.docx", "rb") as word_f,
+):
     files["imageBlock1"] = img_f
     files["fileBlock1"] = pdf_f
     files["fileBlock2"] = word_f

@@ -12,13 +12,13 @@ class TestBusiness(GraphTestCase):
         "Bookings.ReadWrite.All",
         "BookingsAppointment.ReadWrite.All",
     )
-    def test1_list_booking_business(self):
-        result = self.client.solutions.booking_businesses.get().execute_query()
+    async def test1_list_booking_business(self):
+        result = await self.client.solutions.booking_businesses.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     @requires_delegated_permission("Bookings.Manage.All")
-    def test2_create_booking_business(self):
-        result = self.client.solutions.booking_businesses.add(
+    async def test2_create_booking_business(self):
+        result = await self.client.solutions.booking_businesses.add(
             "Fourth Coffee"
         ).execute_query()
         self.assertIsNotNone(result.resource_path)
@@ -30,8 +30,8 @@ class TestBusiness(GraphTestCase):
         "Bookings.ReadWrite.All",
         "BookingsAppointment.ReadWrite.All",
     )
-    def test3_ensure_created(self):
-        result = self.__class__.business.get().execute_query_retry()
+    async def test3_ensure_created(self):
+        result = await self.__class__.business.get().execute_query_retry()
         self.assertIsNotNone(result.resource_path)
 
     # def test4_get_staff_availability(self):
@@ -39,10 +39,10 @@ class TestBusiness(GraphTestCase):
     #    self.assertIsNotNone(result.resource_path)
 
     @requires_delegated_permission("Bookings.Manage.All")
-    def test5_publish(self):
-        result = self.__class__.business.publish().execute_query()
+    async def test5_publish(self):
+        result = await self.__class__.business.publish().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     @requires_delegated_permission("Bookings.Manage.All")
-    def test6_delete_booking_business(self):
-        self.__class__.business.delete_object().execute_query()
+    async def test6_delete_booking_business(self):
+        await self.__class__.business.delete_object().execute_query()

@@ -12,8 +12,8 @@ class TestTeamChats(GraphTestCase):
     #    self.assertIsNotNone(new_chat.resource_path)
     #    self.__class__.target_chat = new_chat
 
-    def test2_list_user_chats(self):
-        chats = self.client.me.chats.get().top(1).execute_query()
+    async def test2_list_user_chats(self):
+        chats = await self.client.me.chats.get().top(1).execute_query()
         self.assertIsNotNone(chats.resource_path)
         self.assertGreaterEqual(len(chats), 0)
 

@@ -1,6 +1,6 @@
 from typing import Callable
 
-import requests
+import httpx
 from typing_extensions import Self
 
 from office365.entity_collection import EntityCollection
@@ -44,8 +44,8 @@ class TeamCollection(EntityCollection[Team]):
         return_type = Team(self.context)
         self.add_child(return_type)
 
-        def _process_response(resp):
-            # type: (requests.Response) -> None
+        async def _process_response(resp):
+            # type: (httpx.Response) -> None
             content_loc = resp.headers.get("Content-Location", None)
             team_path = ODataPathBuilder.parse_url(content_loc)
             return_type.set_property("id", team_path.segment, False)

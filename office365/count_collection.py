@@ -1,4 +1,4 @@
-from requests import Response
+import httpx
 
 from office365.delta_collection import DeltaCollection
 from office365.runtime.client_object import T
@@ -20,8 +20,8 @@ class CountCollection(DeltaCollection[T]):
             request.headers.pop("Accept", None)
             request.ensure_header("ConsistencyLevel", "eventual")
 
-        def _process_response(response):
-            # type: (Response) -> None
+        async def _process_response(response):
+            # type: (httpx.Response) -> None
             response.raise_for_status()
             value = int(response.content.decode("utf-8"))
             return_type.set_property("__value", value)

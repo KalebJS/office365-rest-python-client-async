@@ -21,18 +21,18 @@ class TestSite(GraphTestCase):
         pass
 
     @requires_delegated_permission("Sites.Read.All", "Sites.ReadWrite.All")
-    def test1_get_root_site(self):
-        result = self.client.sites.root.get().execute_query()
+    async def test1_get_root_site(self):
+        result = await self.client.sites.root.get().execute_query()
         assert result.id is not None
 
     @requires_delegated_permission("Sites.Read.All", "Sites.ReadWrite.All")
-    def test2_get_site_by_path(self):
-        result = self.client.sites.get_by_path("/sites/team").execute_query()
+    async def test2_get_site_by_path(self):
+        result = await self.client.sites.get_by_path("/sites/team").execute_query()
         self.assertIsNotNone(result.resource_path)
 
     @requires_delegated_permission("Sites.Read.All", "Sites.ReadWrite.All")
-    def test3_get_site_by_url(self):
-        result = self.client.sites.get_by_url(test_team_site_url).execute_query()
+    async def test3_get_site_by_url(self):
+        result = await self.client.sites.get_by_url(test_team_site_url).execute_query()
         self.assertIsNotNone(result.resource_path)
 
     @requires_delegated_permission(
@@ -43,23 +43,23 @@ class TestSite(GraphTestCase):
         "Sites.Read.All",
         "Sites.ReadWrite.All",
     )
-    def test4_get_activities_by_interval(self):
-        col = self.test_site.get_activities_by_interval().execute_query()
+    async def test4_get_activities_by_interval(self):
+        col = await self.test_site.get_activities_by_interval().execute_query()
         self.assertIsNotNone(col)
 
     @requires_delegated_permission("Sites.ReadWrite.All")
-    def test5_follow(self):
-        self.client.me.follow_site(self.test_site).execute_query()
+    async def test5_follow(self):
+        await self.client.me.follow_site(self.test_site).execute_query()
 
     @requires_delegated_permission("Sites.Read.All", "Sites.ReadWrite.All")
-    def test6_list_followed_sites(self):
-        sites = self.client.me.followed_sites.get().execute_query()
+    async def test6_list_followed_sites(self):
+        sites = await self.client.me.followed_sites.get().execute_query()
         self.followed_sites_count = len(sites)
         self.assertGreaterEqual(len(sites), 1, "No followed sites were returned")
 
     @requires_delegated_permission("Sites.ReadWrite.All")
-    def test7_unfollow(self):
-        self.client.me.unfollow_site(self.test_site).execute_query()
+    async def test7_unfollow(self):
+        await self.client.me.unfollow_site(self.test_site).execute_query()
 
     @requires_delegated_permission(
         "Sites.Read.All",
@@ -67,10 +67,10 @@ class TestSite(GraphTestCase):
         "Sites.Manage.All",
         "Sites.ReadWrite.All",
     )
-    def test9_get_operations(self):
-        ops = self.test_site.operations.get().execute_query()
+    async def test9_get_operations(self):
+        ops = await self.test_site.operations.get().execute_query()
         self.assertIsNotNone(ops.resource_path)
 
-    def test_10_get_analytics(self):
-        result = self.test_site.analytics.last_seven_days.get().execute_query()
+    async def test_10_get_analytics(self):
+        result = await self.test_site.analytics.last_seven_days.get().execute_query()
         self.assertIsNotNone(result.resource_path)

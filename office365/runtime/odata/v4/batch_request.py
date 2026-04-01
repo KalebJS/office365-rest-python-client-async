@@ -1,8 +1,7 @@
 import json
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
-from requests import Response
-from requests.structures import CaseInsensitiveDict
+import httpx
 
 from office365.runtime.http.http_method import HttpMethod
 from office365.runtime.http.request_options import RequestOptions
@@ -24,8 +23,8 @@ class ODataV4BatchRequest(ODataRequest):
         request.data = self._prepare_payload(query)
         return request
 
-    def process_response(self, response, query):
-        # type: (Response, BatchQuery) -> None
+    async def process_response(self, response, query):
+        # type: (httpx.Response, BatchQuery) -> None
         """Parses an HTTP response."""
         for sub_qry, sub_resp in self._extract_response(response, query):
             sub_resp.raise_for_status()
@@ -33,17 +32,18 @@ class ODataV4BatchRequest(ODataRequest):
 
     @staticmethod
     def _extract_response(response, query):
-        # type: (Response, BatchQuery) -> Iterator[Tuple[ClientQuery, Response]]
-        """ """
+        # type: (httpx.Response, BatchQuery) -> Iterator[Tuple[ClientQuery, httpx.Response]]
         json_responses = response.json()
         for json_resp in json_responses["responses"]:
-            resp = Response()
-            resp.status_code = int(json_resp["status"])
-            resp.headers = CaseInsensitiveDict(json_resp["headers"])
-            resp._content = json.dumps(json_resp["body"]).encode("utf-8")
+            body_bytes = json.dumps(json_resp["body"]).encode("utf-8")
+            sub_resp = httpx.Response(
+                status_code=int(json_resp["status"]),
+                headers=json_resp["headers"],
+                content=body_bytes,
+            )
             qry_id = int(json_resp["id"])
             qry = query.ordered_queries[qry_id]
-            yield qry, resp
+            yield qry, sub_resp
 
     def _prepare_payload(self, query):
         # type: (BatchQuery) -> Dict
@@ -58,7 +58,6 @@ class ODataV4BatchRequest(ODataRequest):
     @staticmethod
     def _normalize_request(query, query_id, depends_on=None):
         # type: (ClientQuery, str, Optional[List[str]]) -> Dict[str, Any]
-        """ """
         request = query.build_request()
 
         request_json = {

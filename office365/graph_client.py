@@ -1,5 +1,7 @@
 from typing import Any, Callable, List, Optional
 
+import httpx
+
 from office365.admin.admin import Admin
 from office365.azure_env import AzureEnvironment
 from office365.booking.solutions.root import SolutionsRoot
@@ -100,6 +102,15 @@ class GraphClient(ClientRuntimeContext):
         self._token_cache = token_cache
         self._environment = environment
         self._scopes = scopes
+        self._http_client = httpx.AsyncClient()
+
+    async def __aenter__(self):
+        # type: () -> "GraphClient"
+        await self._http_client.__aenter__()
+        return self
+
+    async def __aexit__(self, *args):
+        await self._http_client.__aexit__(*args)
 
     def with_certificate(self, client_id, thumbprint, private_key):
         """
@@ -147,7 +158,7 @@ class GraphClient(ClientRuntimeContext):
         self.pending_request().with_username_and_password(client_id, username, password)
         return self
 
-    def execute_batch(self, items_per_batch=20, success_callback=None):
+    async def execute_batch(self, items_per_batch=20, success_callback=None):
         """Constructs and submit a batch request
 
         Per Batch size limitations: JSON batch requests are currently limited to 20 individual requests.
@@ -155,11 +166,11 @@ class GraphClient(ClientRuntimeContext):
         :param int items_per_batch: Maximum to be selected for bulk operation
         :param (List[ClientObject|ClientResult])-> None success_callback: A success callback
         """
-        batch_request = ODataV4BatchRequest(V4JsonFormat())
+        batch_request = ODataV4BatchRequest(V4JsonFormat(), self._http_client)
         batch_request.beforeExecute += self.pending_request().authenticate_request
         while self.has_pending_request:
             qry = self._get_next_query(items_per_batch)
-            batch_request.execute_query(qry)
+            await batch_request.execute_query(qry)
             if callable(success_callback):
                 success_callback(qry.return_type)
         return self
@@ -168,7 +179,9 @@ class GraphClient(ClientRuntimeContext):
         # type: () -> GraphRequest
         if self._pending_request is None:
             self._pending_request = GraphRequest(
-                tenant=self._tenant, environment=self._environment
+                http_client=self._http_client,
+                tenant=self._tenant,
+                environment=self._environment,
             )
             if callable(self._token_callback):
                 self._pending_request.with_access_token(self._token_callback)

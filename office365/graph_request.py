@@ -1,5 +1,7 @@
 from typing import Callable, Optional
 
+import httpx
+
 from office365.azure_env import AzureEnvironment
 from office365.runtime.auth.entra.authentication_context import AuthenticationContext
 from office365.runtime.http.request_options import RequestOptions
@@ -9,10 +11,14 @@ from office365.runtime.odata.v4.json_format import V4JsonFormat
 
 class GraphRequest(ODataRequest):
     def __init__(
-        self, version="v1.0", tenant=None, environment=AzureEnvironment.Global
+        self,
+        http_client,
+        version="v1.0",
+        tenant=None,
+        environment=AzureEnvironment.Global,
     ):
-        # type: (str, str, str) -> None
-        super(GraphRequest, self).__init__(V4JsonFormat())
+        # type: (httpx.AsyncClient, str, str, str) -> None
+        super(GraphRequest, self).__init__(V4JsonFormat(), http_client)
         self._version = version
         self._environment = environment
         self._auth_context = AuthenticationContext(
@@ -75,10 +81,10 @@ class GraphRequest(ODataRequest):
         self._auth_context.with_username_and_password(client_id, username, password)
         return self
 
-    def authenticate_request(self, request):
+    async def authenticate_request(self, request):
         # type: (RequestOptions) -> None
         """Authenticate request"""
-        token = self._auth_context.acquire_token()
+        token = await self._auth_context.acquire_token()
         request.ensure_header("Authorization", "Bearer {0}".format(token.accessToken))
 
     @property

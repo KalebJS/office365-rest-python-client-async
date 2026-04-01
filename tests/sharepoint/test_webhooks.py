@@ -19,22 +19,22 @@ class TestSPWebHooks(SPTestCase):
     def tearDownClass(cls):
         pass
 
-    def test1_create_subscription(self):
-        subscription = self.target_list.subscriptions.add(
+    async def test1_create_subscription(self):
+        subscription = await self.target_list.subscriptions.add(
             self.push_service_url
         ).execute_query()
         self.assertIsNotNone(subscription.notification_url)
         self.__class__.target_subscription = subscription
 
-    def test2_list_webhooks(self):
-        subscriptions = self.target_list.subscriptions.get().execute_query()
+    async def test2_list_webhooks(self):
+        subscriptions = await self.target_list.subscriptions.get().execute_query()
         self.assertGreater(len(subscriptions), 0)
 
-    def test3_update_subscription(self):
+    async def test3_update_subscription(self):
         subscription = self.__class__.target_subscription
         subscription.expiration_datetime = datetime.utcnow() + timedelta(days=10)
-        subscription.update().execute_query()
+        await subscription.update().execute_query()
 
-    def test4_delete_subscription(self):
+    async def test4_delete_subscription(self):
         subscription = self.__class__.target_subscription
-        subscription.delete_object().execute_query()
+        await subscription.delete_object().execute_query()

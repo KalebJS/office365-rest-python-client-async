@@ -1,4 +1,4 @@
-import time
+import asyncio
 from typing import Optional
 
 from office365.entity import Entity
@@ -45,9 +45,9 @@ class TeamsAsyncOperation(Entity):
                 else:
                     raise TypeError("The maximum polling count has been reached")
 
-            def _verify_status(return_type):
+            async def _verify_status(return_type):
                 if return_type.status != status_type:
-                    time.sleep(polling_interval_secs)
+                    await asyncio.sleep(polling_interval_secs)
                     _poll_for_status(polling_number + 1)
                 else:
                     if callable(success_callback):

@@ -8,5 +8,5 @@ class NetworkCredentialProvider(AuthenticationProvider):
         super(NetworkCredentialProvider, self).__init__()
         self.userCredentials = (username, password)
 
-    def authenticate_request(self, request):
+    async def authenticate_request(self, request):
         request.auth = self.userCredentials

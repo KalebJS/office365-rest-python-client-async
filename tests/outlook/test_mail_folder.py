@@ -7,21 +7,23 @@ class TestGraphMail(GraphTestCase):
     target_mail_folder = None  # type: MailFolder
 
     @requires_delegated_permission("Mail.ReadWrite")
-    def test1_create_mail_folder(self):
-        result = self.client.me.mail_folders.add("ClutterAlt", True).execute_query()
+    async def test1_create_mail_folder(self):
+        result = await self.client.me.mail_folders.add(
+            "ClutterAlt", True
+        ).execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.target_mail_folder = result
 
     @requires_delegated_permission("Mail.ReadBasic", "Mail.ReadWrite", "Mail.Read")
-    def test2_list_mail_folder(self):
-        result = self.client.me.mail_folders.get().execute_query()
+    async def test2_list_mail_folder(self):
+        result = await self.client.me.mail_folders.get().execute_query()
         self.assertIsNotNone(result.resource_path)
         self.assertGreaterEqual(len(result), 1)
 
     @requires_delegated_permission("Mail.ReadWrite")
-    def test3_update_mail_folder(self):
+    async def test3_update_mail_folder(self):
         folder = self.__class__.target_mail_folder
-        folder.update().execute_query()
+        await folder.update().execute_query()
         self.assertIsNotNone(folder.resource_path)
 
     # @requires_delegated_permission("Mail.ReadWrite")
@@ -30,6 +32,6 @@ class TestGraphMail(GraphTestCase):
     #    folder.delete_object().execute_query()
 
     @requires_delegated_permission("Mail.ReadWrite")
-    def test5_permanent_delete_mail_folder(self):
+    async def test5_permanent_delete_mail_folder(self):
         folder = self.__class__.target_mail_folder
-        folder.permanent_delete().execute_query()
+        await folder.permanent_delete().execute_query()

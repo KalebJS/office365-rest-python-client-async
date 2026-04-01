@@ -14,6 +14,6 @@ class TestManagedDevices(GraphTestCase):
     #    result = self.client.device_management.managed_devices.add().execute_query()
     #    self.assertIsNotNone(result.resource_path)
 
-    def test2_get_my(self):
-        result = self.client.me.managed_devices.get().execute_query()
+    async def test2_get_my(self):
+        result = await self.client.me.managed_devices.get().execute_query()
         self.assertIsNotNone(result.resource_path)

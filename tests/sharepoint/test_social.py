@@ -15,34 +15,36 @@ class TestSocial(SPTestCase):
             test_user_credentials
         )
 
-    def test1_is_following_feature_enabled(self):
-        result = SPSocialSwitch.is_following_feature_enabled(
+    async def test1_is_following_feature_enabled(self):
+        result = await SPSocialSwitch.is_following_feature_enabled(
             self.my_client
         ).execute_query()
         self.assertIsNotNone(result.value)
 
-    def test3_create_post(self):
+    async def test3_create_post(self):
         # post_data = SocialPostCreationData(content_text="Look at this!")
         # manager = SocialFeedManager(self.my_client)
         # result = manager.create_post(None, post_data).execute_query()
         # self.assertIsNotNone(result.value)
         pass
 
-    def test4_delete_post(self):
+    async def test4_delete_post(self):
         pass
 
-    def test5_get_followers(self):
+    async def test5_get_followers(self):
         manager = SocialRestFollowingManager(self.my_client)
-        result = manager.my.followers().execute_query()
+        result = await manager.my.followers().execute_query()
         self.assertIsNotNone(result.value)
 
-    def test6_get_followers_alt(self):
-        result = self.my_client.social_following_manager.get_followers().execute_query()
-        self.assertIsNotNone(result.value)
-
-    def test7_get_suggestions(self):
+    async def test6_get_followers_alt(self):
         result = (
-            self.my_client.social_following_manager.get_suggestions().execute_query()
+            await self.my_client.social_following_manager.get_followers().execute_query()
+        )
+        self.assertIsNotNone(result.value)
+
+    async def test7_get_suggestions(self):
+        result = (
+            await self.my_client.social_following_manager.get_suggestions().execute_query()
         )
         self.assertIsNotNone(result.value)
 

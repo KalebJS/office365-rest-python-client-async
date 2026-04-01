@@ -11,9 +11,9 @@ class TestIdentityGovernance(TestCase):
             test_client_id, test_client_secret
         )
 
-    def test1_list_app_consent_requests(self):
+    async def test1_list_app_consent_requests(self):
         result = (
-            self.client.identity_governance.app_consent.app_consent_requests.get().execute_query()
+            await self.client.identity_governance.app_consent.app_consent_requests.get().execute_query()
         )
         self.assertIsNotNone(result.resource_path)
 

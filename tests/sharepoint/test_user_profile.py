@@ -20,86 +20,90 @@ class TestUserProfile(TestCase):
     #    up = ProfileLoader.get_owner_user_profile(self.my_client).execute_query()
     #    self.assertIsNotNone(up.resource_path)
 
-    def test2_get_profile_loader(self):
-        user_profile = self.my_client.profile_loader.get_user_profile().execute_query()
+    async def test2_get_profile_loader(self):
+        user_profile = (
+            await self.my_client.profile_loader.get_user_profile().execute_query()
+        )
         self.assertIsNotNone(user_profile.account_name)
 
-    def test3_create_personal_site(self):
+    async def test3_create_personal_site(self):
         user_profile = self.my_client.profile_loader.get_user_profile()
-        up = user_profile.create_personal_site_enque(True).execute_query()
+        up = await user_profile.create_personal_site_enque(True).execute_query()
         self.assertIsNotNone(up.public_url)
 
-    def test4_get_user_props(self):
-        target_user = self.my_client.web.ensure_user(
+    async def test4_get_user_props(self):
+        target_user = await self.my_client.web.ensure_user(
             test_user_principal_name
         ).execute_query()
-        result = self.my_client.people_manager.get_user_profile_properties(
+        result = await self.my_client.people_manager.get_user_profile_properties(
             target_user.login_name
         ).execute_query()
         self.assertIsNotNone(result.value)
 
-    def test5_get_properties_for(self):
+    async def test5_get_properties_for(self):
         me = self.my_client.web.current_user
-        properties = self.my_client.people_manager.get_properties_for(
+        properties = await self.my_client.people_manager.get_properties_for(
             me
         ).execute_query()
         self.assertIsNotNone(properties)
 
-    def test6_get_default_document_library(self):
+    async def test6_get_default_document_library(self):
         me = self.my_client.web.current_user
-        result = self.my_client.people_manager.get_default_document_library(
+        result = await self.my_client.people_manager.get_default_document_library(
             me
         ).execute_query()
         self.assertIsNotNone(result.value)
 
-    def test7_get_people_followed_by(self):
-        me = self.my_client.web.current_user.get().execute_query()
-        result = self.my_client.people_manager.get_people_followed_by(
+    async def test7_get_people_followed_by(self):
+        me = await self.my_client.web.current_user.get().execute_query()
+        result = await self.my_client.people_manager.get_people_followed_by(
             me.login_name
         ).execute_query()
         self.assertIsNotNone(result)
 
-    def test7_start_stop_following(self):
+    async def test7_start_stop_following(self):
         people_manager = PeopleManager(self.my_client)
-        target_user = self.my_client.web.ensure_user(
+        target_user = await self.my_client.web.ensure_user(
             test_user_principal_name
         ).execute_query()
-        result = people_manager.am_i_following(target_user.login_name).execute_query()
+        result = await people_manager.am_i_following(
+            target_user.login_name
+        ).execute_query()
         if result.value:
-            people_manager.stop_following(target_user.login_name).execute_query()
+            await people_manager.stop_following(target_user.login_name).execute_query()
         else:
-            people_manager.follow(target_user.login_name).execute_query()
+            await people_manager.follow(target_user.login_name).execute_query()
 
-    def test8_get_followers_for(self):
-        target_user = self.my_client.web.ensure_user(
+    async def test8_get_followers_for(self):
+        target_user = await self.my_client.web.ensure_user(
             test_user_principal_name
         ).execute_query()
-        col = self.my_client.people_manager.get_followers_for(
+        col = await self.my_client.people_manager.get_followers_for(
             target_user.login_name
         ).execute_query()
         self.assertGreaterEqual(len(col), 0)
 
-    def test9_get_my_followers(self):
-        col = self.my_client.people_manager.get_my_followers().execute_query()
+    async def test9_get_my_followers(self):
+        col = await self.my_client.people_manager.get_my_followers().execute_query()
         self.assertGreaterEqual(len(col), 0)
 
-    def test_10_get_trending_tags(self):
-        result = PeopleManager.get_trending_tags(self.my_client).execute_query()
+    async def test_10_get_trending_tags(self):
+        result = await PeopleManager.get_trending_tags(self.my_client).execute_query()
         self.assertGreaterEqual(len(result.items), 0)
 
-    def test_11_get_user_profile_properties(self):
-        user_props = (
+    async def test_11_get_user_profile_properties(self):
+        user_props = await (
             self.my_client.web.current_user.get_user_profile_properties()
             .get()
             .execute_query()
         )
         self.assertIsNotNone(user_props.resource_path)
 
-        result = user_props.get_property_names().execute_query()
+        result = await user_props.get_property_names().execute_query()
         self.assertIsNotNone(result.value)
 
-    def test_12_get_my_site_links(self):
-        result = MySiteLinks.get_my_site_links(self.my_client).execute_query()
+    async def test_12_get_my_site_links(self):
+        result = await MySiteLinks.get_my_site_links(self.my_client).execute_query()
         self.assertIsNotNone(result.all_documents_link)
 
     # def test_13_set_single_value_profile_property(self):
@@ -107,30 +111,30 @@ class TestUserProfile(TestCase):
     #    self.my_client.people_manager.\
     #        set_single_value_profile_property(user.login_name, "Country", "Finland").execute_query()
 
-    def test_14_add_site_link(self):
+    async def test_14_add_site_link(self):
         from office365.sharepoint.userprofiles.promoted_sites import PromotedSites
 
-        PromotedSites.add_site_link(
+        await PromotedSites.add_site_link(
             self.my_client, "https://www.google.com", "Google"
         ).execute_query()
 
-    def test_15_get_promoted_links_as_tiles(self):
+    async def test_15_get_promoted_links_as_tiles(self):
         from office365.sharepoint.userprofiles.promoted_sites import PromotedSites
 
-        result = PromotedSites.get_promoted_links_as_tiles(
+        result = await PromotedSites.get_promoted_links_as_tiles(
             self.my_client
         ).execute_query()
         self.assertIsNotNone(result.value)
         self.assertGreater(len(result.value), 0)
         self.__class__.promoted_links = result.value
 
-    def test_16_get_promoted_links_as_tiles(self):
+    async def test_16_get_promoted_links_as_tiles(self):
         from office365.sharepoint.userprofiles.promoted_sites import PromotedSites
 
         for promoted_link in self.__class__.promoted_links:
             PromotedSites.delete_site_link(self.my_client, promoted_link.ID)
         self.my_client.execute_batch()
-        after_result = PromotedSites.get_promoted_links_as_tiles(
+        after_result = await PromotedSites.get_promoted_links_as_tiles(
             self.my_client
         ).execute_query()
         self.assertEqual(len(after_result.value), 0)

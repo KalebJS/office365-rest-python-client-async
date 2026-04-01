@@ -7,12 +7,14 @@ class TestSPPeoplePicker(SPTestCase):
     def setUpClass(cls):
         super(TestSPPeoplePicker, cls).setUpClass()
 
-    def test1_client_people_picker_resolve_user(self):
+    async def test1_client_people_picker_resolve_user(self):
         result = (
-            self.client.client_people_picker.client_people_picker_resolve_user(
-                self.client, test_user_principal_name
-            )
-        ).execute_query()
+            await (
+                self.client.client_people_picker.client_people_picker_resolve_user(
+                    self.client, test_user_principal_name
+                )
+            ).execute_query()
+        )
         self.assertIsNotNone(result.value)
 
     # def test2_get_picker_entity_information(self):
@@ -20,8 +22,8 @@ class TestSPPeoplePicker(SPTestCase):
     #                                                                         test_user_principal_name).execute_query()
     #    self.assertIsNotNone(result.value)
 
-    def test3_get_search_results(self):
-        result = self.client.people_picker.get_search_results(
+    async def test3_get_search_results(self):
+        result = await self.client.people_picker.get_search_results(
             self.client, "Doe"
         ).execute_query()
         self.assertIsNotNone(result.value)

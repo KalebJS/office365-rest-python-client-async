@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 from examples.sharepoint.lists.assessment.broken_tax_field_value import fields
@@ -17,20 +18,29 @@ class TestExcelTables(GraphTestCase):
     def setUpClass(cls):
         super(TestExcelTables, cls).setUpClass()
         path = "{0}/../../data/Financial Sample.xlsx".format(os.path.dirname(__file__))
-        cls.excel_file = cls.client.me.drive.root.upload_file(path).execute_query()
-        assert cls.excel_file.resource_path is not None
-        cls.worksheet = (
-            cls.excel_file.workbook.worksheets["Sheet1"].get().execute_query()
-        )
-        assert cls.worksheet.resource_path is not None
-        cls.table = cls.worksheet.tables["financials"].get().execute_query()
-        assert cls.table.resource_path is not None
+
+        async def _async_setup():
+            cls.excel_file = await cls.client.me.drive.root.upload_file(
+                path
+            ).execute_query()
+            assert cls.excel_file.resource_path is not None
+            cls.worksheet = (
+                await cls.excel_file.workbook.worksheets["Sheet1"].get().execute_query()
+            )
+            assert cls.worksheet.resource_path is not None
+            cls.table = await cls.worksheet.tables["financials"].get().execute_query()
+            assert cls.table.resource_path is not None
+
+        asyncio.run(_async_setup())
 
     @classmethod
     def tearDownClass(cls):
-        cls.excel_file.delete_object().execute_query_retry()
+        async def _async_teardown():
+            await cls.excel_file.delete_object().execute_query_retry()
 
-    def test1_sort_apply(self):
+        asyncio.run(_async_teardown())
+
+    async def test1_sort_apply(self):
         sort_fields = [WorkbookSortField()]
-        result = self.__class__.table.sort.apply(sort_fields).execute_query()
+        result = await self.__class__.table.sort.apply(sort_fields).execute_query()
         self.assertIsNotNone(result.resource_path)

@@ -32,12 +32,12 @@ class ClientQuery(Generic[T]):
         self._return_type = return_type
 
     def build_request(self):
-        """Builds a request"""
-        return self.context.build_request(self)
+        """Builds a request (sync; used for batch serialization)"""
+        return self.context.pending_request().build_request(self)
 
-    def execute_query(self):
+    async def execute_query(self):
         """Submit request(s) to the server"""
-        self.context.execute_query()
+        await self.context.execute_query()
         return self.return_type
 
     @property

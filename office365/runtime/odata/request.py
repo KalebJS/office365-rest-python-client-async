@@ -1,7 +1,7 @@
 import copy
 from typing import Any, Iterator, Optional, Tuple
 
-import requests
+import httpx
 
 from office365.runtime.client_object import ClientObject
 from office365.runtime.client_request import ClientRequest
@@ -20,10 +20,10 @@ from office365.runtime.queries.update_entity import UpdateEntityQuery
 
 
 class ODataRequest(ClientRequest):
-    def __init__(self, json_format):
-        # type: (ODataJsonFormat) -> None
+    def __init__(self, json_format, http_client):
+        # type: (ODataJsonFormat, httpx.AsyncClient) -> None
         """Creates OData request"""
-        super(ODataRequest, self).__init__()
+        super(ODataRequest, self).__init__(http_client)
         self._default_json_format = json_format
         self.beforeExecute += self._ensure_http_headers
 
@@ -46,8 +46,8 @@ class ODataRequest(ClientRequest):
                 request.data = self._build_payload(query)
         return request
 
-    def process_response(self, response, query):
-        # type: (requests.Response, ClientQuery) -> None
+    async def process_response(self, response, query):
+        # type: (httpx.Response, ClientQuery) -> None
         json_format = copy.deepcopy(self.json_format)
         return_type = query.return_type
         if return_type is None:
@@ -144,7 +144,7 @@ class ODataRequest(ClientRequest):
             json = {query.parameters_name: json}
         return json
 
-    def _ensure_http_headers(self, request):
+    async def _ensure_http_headers(self, request):
         # type: (RequestOptions) -> None
         """
         Ensures that HTTP Header Fields are specified in the OData request, namely:

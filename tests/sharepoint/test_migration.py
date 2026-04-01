@@ -7,8 +7,10 @@ from tests.sharepoint.sharepoint_case import SPTestCase
 class TestMigration(SPTestCase):
     azure_container_info = None  # type: ProvisionedTemporaryAzureContainerInfo
 
-    def test1_provision_temporary_azure_container(self):
-        result = self.client.site.provision_temporary_azure_container().execute_query()
+    async def test1_provision_temporary_azure_container(self):
+        result = (
+            await self.client.site.provision_temporary_azure_container().execute_query()
+        )
         self.assertTrue(result.value)
         self.__class__.azure_container_info = result.value
 
@@ -20,12 +22,12 @@ class TestMigration(SPTestCase):
     #    ).execute_query()
     #    self.assertIsNotNone(result.value)
 
-    def test4_get_migration_center_storage(self):
+    async def test4_get_migration_center_storage(self):
         from office365.sharepoint.migrationcenter.service.storage import (
             MigrationCenterStorage,
         )
 
-        result = MigrationCenterStorage(self.client).get().execute_query()
+        result = await MigrationCenterStorage(self.client).get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     # def test5_get_migration_performance_data(self):
@@ -33,6 +35,6 @@ class TestMigration(SPTestCase):
     #    result = MigrationCenterServices(self.client).performance_data.get().execute_query()
     #    self.assertIsNotNone(result.resource_path)
 
-    def test6_get_copy_job_progress(self):
-        result = self.client.site.get_copy_job_progress().execute_query()
+    async def test6_get_copy_job_progress(self):
+        result = await self.client.site.get_copy_job_progress().execute_query()
         self.assertIsNotNone(result.value)

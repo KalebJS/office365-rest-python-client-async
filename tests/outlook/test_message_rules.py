@@ -9,13 +9,13 @@ class TestMessageRules(GraphTestCase):
     target_message_rule = None  # type: MessageRule
 
     @requires_delegated_permission("MailboxSettings.ReadWrite")
-    def test1_create_rule(self):
+    async def test1_create_rule(self):
         actions = MessageRuleActions(
             forward_to=[Recipient.from_email("AlexW@contoso.com")],
             stop_processing_rules=True,
             mark_importance="normal",
         )
-        result = (
+        result = await (
             self.client.me.mail_folders["inbox"]
             .message_rules.add("From partner", 2, actions)
             .execute_query()
@@ -24,24 +24,26 @@ class TestMessageRules(GraphTestCase):
         self.__class__.target_message_rule = result
 
     @requires_delegated_permission("MailboxSettings.Read", "MailboxSettings.ReadWrite")
-    def test2_list_rules(self):
+    async def test2_list_rules(self):
         message_rules = (
-            self.client.me.mail_folders["inbox"].message_rules.get().execute_query()
+            await self.client.me.mail_folders["inbox"]
+            .message_rules.get()
+            .execute_query()
         )
         self.assertIsNotNone(message_rules.resource_path)
 
     @requires_delegated_permission("MailboxSettings.ReadWrite")
-    def test3_update_rule(self):
+    async def test3_update_rule(self):
         rule = self.__class__.target_message_rule
         rule.actions.markImportance = "high"
-        rule.update().execute_query()
+        await rule.update().execute_query()
 
     @requires_delegated_permission("MailboxSettings.Read", "MailboxSettings.ReadWrite")
-    def test4_get_rule(self):
-        result = self.__class__.target_message_rule.get().execute_query()
+    async def test4_get_rule(self):
+        result = await self.__class__.target_message_rule.get().execute_query()
         self.assertEqual(result.actions.markImportance, "high")
 
     @requires_delegated_permission("MailboxSettings.ReadWrite")
-    def test5_delete_rule(self):
+    async def test5_delete_rule(self):
         rule = self.__class__.target_message_rule
-        rule.delete_object().execute_query()
+        await rule.delete_object().execute_query()

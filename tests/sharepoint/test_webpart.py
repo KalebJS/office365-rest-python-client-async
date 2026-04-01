@@ -1,3 +1,4 @@
+import asyncio
 from unittest import TestCase
 
 from office365.sharepoint.client_context import ClientContext
@@ -17,13 +18,22 @@ class TestWebPart(TestCase):
         )
         page_url = "/SitePages/Home.aspx"
         cls.file = cls.client.web.get_file_by_server_relative_url(page_url)
-        cls.file.checkout().execute_query()
+
+        async def _async_setup():
+            await cls.file.checkout().execute_query()
+
+        asyncio.run(_async_setup())
 
     @classmethod
     def tearDownClass(cls):
-        cls.file.checkin("Added web part", CheckinType.MajorCheckIn).execute_query()
+        async def _async_teardown():
+            await cls.file.checkin(
+                "Added web part", CheckinType.MajorCheckIn
+            ).execute_query()
 
-    def test2_import_web_part(self):
+        asyncio.run(_async_teardown())
+
+    async def test2_import_web_part(self):
         xml_content = """<?xml version="1.0" encoding="utf-16" standalone="no"?>
 <WebPart xmlns="http://schemas.microsoft.com/WebPart/v2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
@@ -33,7 +43,7 @@ class TestWebPart(TestCase):
     <HeaderTitle xmlns="http://schemas.microsoft.com/WebPart/v2/TitleBar">Home</HeaderTitle>
 </WebPart>"""
 
-        result = (
+        result = await (
             self.file.get_limited_webpart_manager()
             .import_web_part(xml_content)
             .execute_query()
@@ -50,8 +60,8 @@ class TestWebPart(TestCase):
     #   web_part = self.__class__.target_web_part
     #   web_part.save_web_part_changes().execute_query()
 
-    def test5_list_web_parts(self):
-        web_parts = (
+    async def test5_list_web_parts(self):
+        web_parts = await (
             self.file.get_limited_webpart_manager()
             .web_parts.expand(["WebPart"])
             .get()

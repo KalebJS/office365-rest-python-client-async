@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 from office365.onedrive.driveitems.driveItem import DriveItem
@@ -15,15 +16,26 @@ class TestExcelFunctions(GraphTestCase):
     def setUpClass(cls):
         super(TestExcelFunctions, cls).setUpClass()
         path = "{0}/../../data/Financial Sample.xlsx".format(os.path.dirname(__file__))
-        cls.target_item = cls.client.me.drive.root.upload_file(path).execute_query()
-        assert cls.target_item.resource_path is not None
+
+        async def _async_setup():
+            cls.target_item = await cls.client.me.drive.root.upload_file(
+                path
+            ).execute_query()
+            assert cls.target_item.resource_path is not None
+
+        asyncio.run(_async_setup())
 
     @classmethod
     def tearDownClass(cls):
-        cls.target_item.delete_object().execute_query_retry()
+        async def _async_teardown():
+            await cls.target_item.delete_object().execute_query_retry()
 
-    def test1_get_abs(self):
-        result = self.__class__.target_item.workbook.functions.abs(-2).execute_query()
+        asyncio.run(_async_teardown())
+
+    async def test1_get_abs(self):
+        result = await self.__class__.target_item.workbook.functions.abs(
+            -2
+        ).execute_query()
         self.assertEqual(result.value, 2)
 
     # def test2_get_days(self):

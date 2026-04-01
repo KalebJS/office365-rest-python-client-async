@@ -18,27 +18,27 @@ class TestColumn(GraphTestCase):
         "Sites.FullControl.All",
         "Sites.ReadWrite.All",
     )
-    def test1_list_list_columns(self):
-        columns = self.doclib.columns.get().execute_query()
+    async def test1_list_list_columns(self):
+        columns = await self.doclib.columns.get().execute_query()
         self.assertGreater(len(columns), 0)
 
     @requires_delegated_permission("Sites.Manage.All", "Sites.FullControl.All")
-    def test2_create_text_column_for_list(self):
+    async def test2_create_text_column_for_list(self):
         column_name = create_unique_name("TextColumn")
-        column = self.doclib.columns.add_text(column_name).execute_query()
+        column = await self.doclib.columns.add_text(column_name).execute_query()
         self.assertIsNotNone(column.resource_path)
         self.__class__.list_columns.append(column)
 
     @requires_delegated_permission("Sites.Manage.All", "Sites.FullControl.All")
-    def test3_create_lookup_column_for_list(self):
+    async def test3_create_lookup_column_for_list(self):
         column_name = create_unique_name("LookupColumn")
-        column = self.doclib.columns.add_lookup(
+        column = await self.doclib.columns.add_lookup(
             column_name, self.doclib
         ).execute_query()
         self.assertIsNotNone(column.resource_path)
         self.__class__.list_columns.append(column)
 
     @requires_delegated_permission("Sites.Manage.All", "Sites.FullControl.All")
-    def test3_delete_list_columns(self):
+    async def test3_delete_list_columns(self):
         for col_to_del in self.__class__.list_columns:
-            col_to_del.delete_object().execute_query()
+            await col_to_del.delete_object().execute_query()

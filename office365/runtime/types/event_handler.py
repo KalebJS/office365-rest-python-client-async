@@ -1,9 +1,10 @@
+import asyncio
 import types
 from typing import Any, Callable, Iterator, TypeVar
 
 from typing_extensions import Self
 
-F = TypeVar("F", bound=Callable[..., None])
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 class EventHandler:
@@ -33,12 +34,15 @@ class EventHandler:
     def __len__(self):
         return len(self._listeners)
 
-    def notify(self, *args, **kwargs):
+    async def notify(self, *args, **kwargs):
         # type: (Any, Any) -> None
         for listener in self._listeners[:]:
             if self._once:
                 self._listeners.remove(listener)
-            listener(*args, **kwargs)
+            if asyncio.iscoroutinefunction(listener):
+                await listener(*args, **kwargs)
+            else:
+                listener(*args, **kwargs)
 
     @staticmethod
     def is_system(listener):

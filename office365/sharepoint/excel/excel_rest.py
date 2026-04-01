@@ -18,7 +18,7 @@ class ExcelService(ClientRuntimeContext):
         """
         super(ExcelService, self).__init__()
 
-    def authenticate_request(self, request):
+    async def authenticate_request(self, request):
         pass
 
     @property

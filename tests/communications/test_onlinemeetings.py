@@ -17,17 +17,17 @@ class TestOnlineMeetings(GraphTestCase):
     def tearDownClass(cls):
         pass
 
-    def test1_create_meeting(self):
-        meeting = self.client.me.online_meetings.create(
+    async def test1_create_meeting(self):
+        meeting = await self.client.me.online_meetings.create(
             subject="User Token Meeting"
         ).execute_query()
         self.assertIsNotNone(meeting.resource_path)
         self.__class__.target_meeting = meeting
 
-    def test2_get_meeting(self):
+    async def test2_get_meeting(self):
         meeting_id = self.__class__.target_meeting.id
         existing_meeting = (
-            self.client.me.online_meetings[meeting_id].get().execute_query()
+            await self.client.me.online_meetings[meeting_id].get().execute_query()
         )
         self.assertIsNotNone(existing_meeting.resource_path)
 
@@ -37,13 +37,13 @@ class TestOnlineMeetings(GraphTestCase):
     #    )
     #    self.assertIsNotNone(result.value)
 
-    def test4_update_meeting(self):
+    async def test4_update_meeting(self):
         now = datetime.now(pytz.utc)
         update_meeting = self.__class__.target_meeting
         update_meeting.subject = "Patch Meeting Subject"
         update_meeting.start_datetime = now
         update_meeting.end_datetime = now + timedelta(hours=1)
-        update_meeting.update().execute_query()
+        await update_meeting.update().execute_query()
 
-    def test5_delete_meeting(self):
-        self.__class__.target_meeting.delete_object().execute_query()
+    async def test5_delete_meeting(self):
+        await self.__class__.target_meeting.delete_object().execute_query()

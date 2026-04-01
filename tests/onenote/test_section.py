@@ -13,6 +13,6 @@ class TestSection(GraphTestCase):
     def tearDownClass(cls):
         pass
 
-    def test2_list_sections(self):
-        my_sections = self.client.me.onenote.sections.get().execute_query()
+    async def test2_list_sections(self):
+        my_sections = await self.client.me.onenote.sections.get().execute_query()
         self.assertIsNotNone(my_sections.resource_path)

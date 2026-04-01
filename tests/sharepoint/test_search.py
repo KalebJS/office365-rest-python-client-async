@@ -25,64 +25,68 @@ class TestSearch(TestCase):
             test_user_credentials
         )
 
-    def test1_export_search_settings(self):
+    async def test1_export_search_settings(self):
         current_user = self.client.web.current_user
         export_start_data = datetime.today() - timedelta(days=100)
-        result = self.client.search.export(
+        result = await self.client.search.export(
             current_user, export_start_data
         ).execute_query()
         self.assertIsNotNone(result.value)
 
-    def test2_export_popular_tenant_queries(self):
-        result = self.client.search.export_popular_tenant_queries(10).execute_query()
+    async def test2_export_popular_tenant_queries(self):
+        result = await self.client.search.export_popular_tenant_queries(
+            10
+        ).execute_query()
         self.assertIsNotNone(result.value)
 
-    def test3_get_search_center_url(self):
-        result = self.client.search.search_center_url().execute_query()
+    async def test3_get_search_center_url(self):
+        result = await self.client.search.search_center_url().execute_query()
         self.assertIsNotNone(result.value)
 
-    def test4_search_post_query(self):
-        result = self.client.search.post_query(
+    async def test4_search_post_query(self):
+        result = await self.client.search.post_query(
             query_text="filename:guide.docx"
         ).execute_query()
         self.assertIsInstance(result.value, SearchResult)
         self.assertIsInstance(result.value.PrimaryQueryResult, QueryResult)
 
-    def test5_search_get_query(self):
-        result = self.client.search.query("guide.docx").execute_query()
+    async def test5_search_get_query(self):
+        result = await self.client.search.query("guide.docx").execute_query()
         self.assertIsInstance(result.value, SearchResult)
         self.assertIsInstance(result.value.PrimaryQueryResult, QueryResult)
 
-    def test6_search_get_query_with_select(self):
-        result = self.client.search.query(
+    async def test6_search_get_query_with_select(self):
+        result = await self.client.search.query(
             "guide.docx", select_properties=["Path", "LastModifiedTime"]
         ).execute_query()
         self.assertIsInstance(result.value, SearchResult)
         self.assertIsInstance(result.value.PrimaryQueryResult, QueryResult)
 
-    def test7_search_get_query_with_sort_list(self):
-        result = self.client.search.post_query(
+    async def test7_search_get_query_with_sort_list(self):
+        result = await self.client.search.post_query(
             query_text="guide.docx",
             enable_sorting=True,
             sort_list=[Sort("LastModifiedTime", 1)],
         ).execute_query()
         self.assertIsInstance(result.value.PrimaryQueryResult, QueryResult)
 
-    def test8_search_suggest(self):
-        result = self.client.search.suggest("guide").execute_query()
+    async def test8_search_suggest(self):
+        result = await self.client.search.suggest("guide").execute_query()
         self.assertIsInstance(result.value, QuerySuggestionResults)
 
     # def test9_auto_completions(self):
     #    result = self.search.auto_completions("guide").execute_query()
     #    self.assertIsNotNone(result.value)
 
-    def test_10_get_query_configuration(self):
-        result = self.client.search_setting.get_query_configuration().execute_query()
+    async def test_10_get_query_configuration(self):
+        result = (
+            await self.client.search_setting.get_query_configuration().execute_query()
+        )
         self.assertIsNotNone(result.value)
 
-    def test_11_get_promoted_result_query_rules(self):
+    async def test_11_get_promoted_result_query_rules(self):
         result = (
-            self.client.search_setting.get_promoted_result_query_rules().execute_query()
+            await self.client.search_setting.get_promoted_result_query_rules().execute_query()
         )
         self.assertIsNotNone(result.value)
 
@@ -107,6 +111,6 @@ class TestSearch(TestCase):
     #    result = self.client.document_crawl_log.get_crawled_urls().execute_query()
     #    self.assertIsNotNone(result.value)
 
-    def test_13_results_page_address(self):
-        result = self.client.search.results_page_address().execute_query()
+    async def test_13_results_page_address(self):
+        result = await self.client.search.results_page_address().execute_query()
         self.assertIsNotNone(result.value)

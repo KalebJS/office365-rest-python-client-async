@@ -1,3 +1,4 @@
+import asyncio
 from random import randint
 from time import sleep
 
@@ -20,163 +21,174 @@ class TestSharePointListItem(SPTestCase):
     def setUpClass(cls):
         super(TestSharePointListItem, cls).setUpClass()
         target_list_title = "Tasks" + str(randint(0, 10000))
-        cls.target_list = cls.ensure_list(
-            cls.client.web,
-            ListCreationInformation(target_list_title, None, ListTemplateType.Tasks),
-        )
         cls.default_title = create_unique_name("Task")
         cls.batch_items_count = 3
 
+        async def _async_setup():
+            cls.target_list = await cls.ensure_list(
+                cls.client.web,
+                ListCreationInformation(
+                    target_list_title, None, ListTemplateType.Tasks
+                ),
+            )
+
+        asyncio.run(_async_setup())
+
     @classmethod
     def tearDownClass(cls):
-        cls.target_list.delete_object().execute_query()
+        async def _async_teardown():
+            await cls.target_list.delete_object().execute_query()
 
-    def test1_create_list_item(self):
+        asyncio.run(_async_teardown())
+
+    async def test1_create_list_item(self):
         item_properties = {"Title": self.default_title}
-        new_item = self.target_list.add_item(item_properties).execute_query()
+        new_item = await self.target_list.add_item(item_properties).execute_query()
         self.assertIsNotNone(new_item.properties["Title"])
         self.__class__.target_item = new_item
 
-    def test2_enable_folders_in_list(self):
-        def _init_list():
+    async def test2_enable_folders_in_list(self):
+        async def _init_list():
             if not self.target_list.enable_folder_creation:
                 self.target_list.enable_folder_creation = True
-                self.target_list.update().execute_query()
+                await self.target_list.update().execute_query()
             self.assertTrue(
                 self.target_list.enable_folder_creation, "Folder creation enabled"
             )
 
-        self.target_list.ensure_property(
+        await self.target_list.ensure_property(
             "EnableFolderCreation", _init_list
         ).execute_query()
 
-    def test3_create_folder_in_list(self):
-        new_folder = self.target_list.root_folder.add("Archive").execute_query()
+    async def test3_create_folder_in_list(self):
+        new_folder = await self.target_list.root_folder.add("Archive").execute_query()
         self.assertIsNotNone(new_folder.serverRelativeUrl)
 
-    def test4_get_list_item(self):
+    async def test4_get_list_item(self):
         item_id = self.__class__.target_item.id
-        item = self.target_list.get_item_by_id(item_id).get().execute_query()
+        item = await self.target_list.get_item_by_id(item_id).get().execute_query()
         self.assertIsNotNone(item.id)
 
-    def test5_get_list_item_via_caml(self):
+    async def test5_get_list_item_via_caml(self):
         item_id = self.__class__.target_item.id
         caml_query = CamlQuery.parse(
             "<Where><Eq><FieldRef Name='ID' /><Value Type='Counter'>{0}</Value></Eq></Where>".format(
                 item_id
             )
         )
-        result = self.target_list.get_items(caml_query).execute_query()
+        result = await self.target_list.get_items(caml_query).execute_query()
         self.assertEqual(len(result), 1)
 
-    def test6_get_wopi_frame_url(self):
-        result = self.__class__.target_item.get_wopi_frame_url(
+    async def test6_get_wopi_frame_url(self):
+        result = await self.__class__.target_item.get_wopi_frame_url(
             SPWOPIAction.default
         ).execute_query()
         self.assertIsNotNone(result.value)
 
-    def test7_update_listItem(self):
-        item_to_update = self.__class__.target_item.get().execute_query()
+    async def test7_update_listItem(self):
+        item_to_update = await self.__class__.target_item.get().execute_query()
         last_updated = item_to_update.properties["Modified"]
 
         sleep(1)
         new_title = create_unique_name("Task item")
         item_to_update.set_property("Title", new_title).update()
         self.client.load(item_to_update)  # retrieve updated
-        self.client.execute_query()
+        await self.client.execute_query()
         self.assertNotEqual(item_to_update.properties["Modified"], last_updated)
         self.assertNotEqual(self.default_title, new_title)
 
-    def test8_systemUpdate_listItem(self):
-        item_to_update = self.__class__.target_item.get().execute_query()
+    async def test8_systemUpdate_listItem(self):
+        item_to_update = await self.__class__.target_item.get().execute_query()
         last_updated = item_to_update.properties["Modified"]
 
         new_title = create_unique_name("Task item %s")
         item_to_update.set_property("Title", new_title).system_update()
         self.client.load(item_to_update)  # retrieve updated
-        self.client.execute_query()
+        await self.client.execute_query()
         self.assertEqual(item_to_update.properties["Modified"], last_updated)
         self.assertNotEqual(self.default_title, new_title)
 
-    def test9_update_overwrite_version(self):
+    async def test9_update_overwrite_version(self):
         item_to_update = self.__class__.target_item
-        item_to_update.update_overwrite_version().execute_query()
+        await item_to_update.update_overwrite_version().execute_query()
 
-    def test_11_get_versions(self):
-        versions = self.__class__.target_item.versions.get().execute_query()
+    async def test_11_get_versions(self):
+        versions = await self.__class__.target_item.versions.get().execute_query()
         self.assertIsNotNone(versions.resource_path)
 
-    def test_12_get_dlp_policy_tip(self):
-        result = self.__class__.target_item.get_dlp_policy_tip.get().execute_query()
+    async def test_12_get_dlp_policy_tip(self):
+        result = (
+            await self.__class__.target_item.get_dlp_policy_tip.get().execute_query()
+        )
         self.assertIsNotNone(result.resource_path)
 
-    def test_13_enable_comments(self):
-        comments = self.__class__.target_item.set_comments_disabled(
+    async def test_13_enable_comments(self):
+        comments = await self.__class__.target_item.set_comments_disabled(
             False
         ).execute_query()
         self.assertIsNotNone(comments.resource_path)
 
-    def test_10_get_comments(self):
-        comments = self.__class__.target_item.get_comments().execute_query()
+    async def test_10_get_comments(self):
+        comments = await self.__class__.target_item.get_comments().execute_query()
         self.assertIsNotNone(comments.resource_path)
 
-    def test_14_recycle_item(self):
+    async def test_14_recycle_item(self):
         item_to_recycle = self.__class__.target_item
-        result = item_to_recycle.recycle().execute_query()
+        result = await item_to_recycle.recycle().execute_query()
         self.assertIsNotNone(result.value)
         self.__class__.deleted_item_guid = result.value
 
-    def test_15_restore_item(self):
+    async def test_15_restore_item(self):
         recycle_item = self.client.web.recycle_bin.get_by_id(
             self.__class__.deleted_item_guid
         )
-        recycle_item.restore().execute_query()
+        await recycle_item.restore().execute_query()
         self.assertIsNotNone(recycle_item.resource_path)
 
-    def test_16_set_rating(self):
-        result = self.__class__.target_item.set_rating(1).execute_query()
+    async def test_16_set_rating(self):
+        result = await self.__class__.target_item.set_rating(1).execute_query()
         self.assertIsNotNone(result.value)
 
-    def test_17_delete_list_item(self):
+    async def test_17_delete_list_item(self):
         item_id = self.__class__.target_item.properties["Id"]
         item_to_delete = self.__class__.target_item
-        item_to_delete.delete_object().execute_query()
+        await item_to_delete.delete_object().execute_query()
 
-        result = (
+        result = await (
             self.target_list.items.filter("Id eq {0}".format(item_id))
             .get()
             .execute_query()
         )
         self.assertEqual(0, len(result))
 
-    def test_18_create_multiple_items(self):
+    async def test_18_create_multiple_items(self):
         for i in range(0, self.batch_items_count):
             item_properties = {"Title": "Task {0}".format(i)}
             self.target_list.add_item(item_properties)
         self.client.execute_batch()
-        result = self.target_list.items.get().execute_query()
+        result = await self.target_list.items.get().execute_query()
         self.assertEqual(len(result), self.batch_items_count)
 
-    def test_19_get_multiple_items_with_params(self):
+    async def test_19_get_multiple_items_with_params(self):
         # test case for when .load with set properties_to_retrieve
         # would ignore all other previously set query params (like top(2))
 
         items = self.target_list.items.top(2)
         self.client.load(items, ["Id", "AttachmentFiles"])
-        self.client.execute_query()
+        await self.client.execute_query()
         self.assertLessEqual(len(items), 2)
 
-    def test_20_delete_multiple_items(self):
-        items = self.target_list.items.get().execute_query()  # get existing items
+    async def test_20_delete_multiple_items(self):
+        items = await self.target_list.items.get().execute_query()  # get existing items
         self.assertGreater(len(items), 0)
         [item.delete_object() for item in items]
         self.client.execute_batch()
-        items_after = self.target_list.items.get().execute_query()
+        items_after = await self.target_list.items.get().execute_query()
         self.assertEqual(len(items_after), 0)
 
-    def test_21_get_all_items(self):
+    async def test_21_get_all_items(self):
         users_list = self.client.web.lists.get_by_title("User Information List")
-        items = users_list.items.get_all(page_size=1000).execute_query()
+        items = await users_list.items.get_all(page_size=1000).execute_query()
         items_count = len(items)
-        items = users_list.items.get_all(page_size=1000).execute_query()
+        items = await users_list.items.get_all(page_size=1000).execute_query()
         self.assertEqual(len(items), items_count)

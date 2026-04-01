@@ -1,3 +1,5 @@
+import asyncio
+
 from office365.directory.serviceprincipals.service_principal import ServicePrincipal
 from tests import test_client_id
 from tests.decorators import requires_delegated_permission
@@ -12,11 +14,15 @@ class TestSynchronization(GraphTestCase):
     @classmethod
     def setUpClass(cls):
         super(TestSynchronization, cls).setUpClass()
-        cls.target_sp = (
-            cls.client.service_principals.get_by_app_id(test_client_id)
-            .get()
-            .execute_query()
-        )
+
+        async def _async_setup():
+            cls.target_sp = await (
+                cls.client.service_principals.get_by_app_id(test_client_id)
+                .get()
+                .execute_query()
+            )
+
+        asyncio.run(_async_setup())
 
     @classmethod
     def tearDownClass(cls):
@@ -25,6 +31,6 @@ class TestSynchronization(GraphTestCase):
     @requires_delegated_permission(
         "Synchronization.Read.All", "Synchronization.ReadWrite.All"
     )
-    def test1_list_synchronization_jobs(self):
-        result = self.target_sp.synchronization.jobs.get().execute_query()
+    async def test1_list_synchronization_jobs(self):
+        result = await self.target_sp.synchronization.jobs.get().execute_query()
         self.assertIsNotNone(result.resource_path)

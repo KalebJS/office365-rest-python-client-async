@@ -20,29 +20,29 @@ class TestSitePage(GraphTestCase):
     def tearDownClass(cls):
         pass
 
-    def test1_create_site_page(self):
-        result = self.test_site.pages.add(self.page_name).execute_query()
+    async def test1_create_site_page(self):
+        result = await self.test_site.pages.add(self.page_name).execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.target_page = result
 
-    def test2_get_site_page(self):
+    async def test2_get_site_page(self):
         page = self.__class__.target_page
-        result = page.get().execute_query()
+        result = await page.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
-    def test3_get_item_by_name(self):
-        result = self.pages_list.items.get_by_name("Home.aspx").execute_query()
+    async def test3_get_item_by_name(self):
+        result = await self.pages_list.items.get_by_name("Home.aspx").execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.target_item = result
 
-    def test4_checkin_site_page(self):
+    async def test4_checkin_site_page(self):
         page = self.__class__.target_page
-        result = page.checkin("Initial version").execute_query()
+        result = await page.checkin("Initial version").execute_query()
         self.assertIsNotNone(result.resource_path)
 
-    def test5_get_site_page_pub_state(self):
+    async def test5_get_site_page_pub_state(self):
         page = self.__class__.target_page
-        result = page.get().select(["publishingState"]).execute_query()
+        result = await page.get().select(["publishingState"]).execute_query()
         self.assertIsNotNone(result.publishing_state.level)
 
     # def test6_publish_site_page(self):
@@ -51,8 +51,8 @@ class TestSitePage(GraphTestCase):
     #    self.assertIsNotNone(result.resource_path)
 
     @requires_delegated_permission("Sites.Read.All", "Sites.ReadWrite.All")
-    def test7_list_site_pages(self):
-        result = self.test_site.pages.top(10).get().execute_query()
+    async def test7_list_site_pages(self):
+        result = await self.test_site.pages.top(10).get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     # def test8_get_site_page_by_name(self):
@@ -69,10 +69,12 @@ class TestSitePage(GraphTestCase):
     #    result = page.get_web_parts_by_position().execute_query()
     #    self.assertIsNotNone(result.resource_path)
 
-    def test_11_delete_site_page(self):
+    async def test_11_delete_site_page(self):
         page = self.__class__.target_page
-        page.delete_object().execute_query()
+        await page.delete_object().execute_query()
 
-    def test_12_get_site_page_list(self):
-        result = self.test_site.lists.get_by_name("Site Pages").get().execute_query()
+    async def test_12_get_site_page_list(self):
+        result = (
+            await self.test_site.lists.get_by_name("Site Pages").get().execute_query()
+        )
         self.assertIsNotNone(result.resource_path)

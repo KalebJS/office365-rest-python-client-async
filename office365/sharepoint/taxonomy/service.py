@@ -13,7 +13,7 @@ class TaxonomyService(ClientRuntimeContext):
         :type  context: office365.sharepoint.client_context.ClientContext
         """
         super(TaxonomyService, self).__init__()
-        self._pending_request = ODataRequest(V4JsonFormat())
+        self._pending_request = ODataRequest(V4JsonFormat(), context._http_client)
         self._pending_request.beforeExecute += (
             context.authentication_context.authenticate_request
         )

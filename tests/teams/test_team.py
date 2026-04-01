@@ -17,21 +17,21 @@ class TestGraphTeam(GraphTestCase):
     @requires_delegated_permission(
         "Team.Create", "Directory.ReadWrite.All", "Group.ReadWrite.All"
     )
-    def test1_create_team(self):
+    async def test1_create_team(self):
         team_name = "Group_" + uuid.uuid4().hex
-        team = self.client.teams.create(team_name).execute_query()
+        team = await self.client.teams.create(team_name).execute_query()
         self.assertIsNotNone(team.id)
         self.__class__.target_team = team
 
     @requires_delegated_permission(
         "Team.ReadBasic.All", "TeamSettings.Read.All", "TeamSettings.ReadWrite.All"
     )
-    def test3_list_all_teams_in_org(self):
-        result = self.client.teams.get_all().execute_query()
+    async def test3_list_all_teams_in_org(self):
+        result = await self.client.teams.get_all().execute_query()
         self.assertGreater(len(result), 0)
 
-    def test4_list_joined_teams(self):
-        result = self.client.me.joined_teams.get().execute_query()
+    async def test4_list_joined_teams(self):
+        result = await self.client.me.joined_teams.get().execute_query()
         self.assertIsNotNone(result.resource_path)
         self.assertGreater(len(result), 0)
 
@@ -44,32 +44,32 @@ class TestGraphTeam(GraphTestCase):
         "Group.ReadWrite.All",
         "TeamSettings.Read.All",
     )
-    def test5_get_team(self):
+    async def test5_get_team(self):
         group_id = self.__class__.target_team.id
-        existing_team = self.client.teams[group_id].get().execute_query()
+        existing_team = await self.client.teams[group_id].get().execute_query()
         self.assertIsNotNone(existing_team.resource_path)
         self.assertIsNotNone(existing_team.messaging_settings)
 
         if existing_team.is_archived:
             existing_team.unarchive()
             self.client.load(existing_team)
-            self.client.execute_query()
+            await self.client.execute_query()
             self.assertFalse(existing_team.is_archived)
 
     @requires_delegated_permission(
         "TeamSettings.ReadWrite.All", "Directory.ReadWrite.All", "Group.ReadWrite.All"
     )
-    def test6_update_team(self):
+    async def test6_update_team(self):
         team = self.__class__.target_team
         team.fun_settings.allowGiphy = False
-        team.update().execute_query()
+        await team.update().execute_query()
 
     @requires_delegated_permission(
         "TeamSettings.ReadWrite.All", "Directory.ReadWrite.All", "Group.ReadWrite.All"
     )
-    def test7_archive_team(self):
+    async def test7_archive_team(self):
         team = self.__class__.target_team
-        team.archive().execute_query()
+        await team.archive().execute_query()
 
     # @requires_delegated_permission(
     #    "TeamSettings.ReadWrite.All", "Directory.ReadWrite.All", "Group.ReadWrite.All"
@@ -79,6 +79,6 @@ class TestGraphTeam(GraphTestCase):
     #    self.client.teams[team_id].unarchive().execute_query()
 
     @requires_delegated_permission("Group.ReadWrite.All")
-    def test9_delete_team(self):
+    async def test9_delete_team(self):
         team_to_delete = self.__class__.target_team
-        team_to_delete.delete_object().execute_query_retry()
+        await team_to_delete.delete_object().execute_query_retry()

@@ -10,8 +10,8 @@ class TestUsageReports(GraphTestCase):
     def tearDownClass(cls):
         pass
 
-    def test1_billed_usage_export(self):
-        result = self.client.reports.partners.billing.usage.billed.export(
+    async def test1_billed_usage_export(self):
+        result = await self.client.reports.partners.billing.usage.billed.export(
             "G016907411"
         ).execute_query()
         self.assertIsNotNone(result.value)

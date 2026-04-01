@@ -2,7 +2,7 @@ import datetime
 from typing import TYPE_CHECKING, AnyStr
 from urllib.parse import quote, unquote
 
-import requests
+import httpx
 
 from office365.runtime.client_result import ClientResult
 from office365.runtime.http.http_method import HttpMethod
@@ -689,15 +689,16 @@ class File(AbstractFile):
                 request.stream = True
                 request.method = HttpMethod.Get
 
-            def _process_response(response):
-                # type: (requests.Response) -> None
+            async def _process_response(response):
+                # type: (httpx.Response) -> None
                 response.raise_for_status()
                 bytes_read = 0
-                for chunk in response.iter_content(chunk_size=chunk_size):
+                async for chunk in response.aiter_bytes(chunk_size=chunk_size):
                     bytes_read += len(chunk)
                     if callable(chunk_downloaded):
                         chunk_downloaded(bytes_read)
                     file_object.write(chunk)
+                await response.aclose()
 
             self.context.add_query(qry).before_query_execute(
                 _construct_request

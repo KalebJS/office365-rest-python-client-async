@@ -1,7 +1,7 @@
 import copy
 from typing import Callable, List, Optional
 
-from requests import RequestException
+import httpx
 from typing_extensions import Self
 
 from office365.runtime.auth.authentication_context import AuthenticationContext
@@ -69,6 +69,15 @@ class ClientContext(ClientRuntimeContext):
         self._site = None
         self._ctx_web_info = None
         self._pending_request = None
+        self._http_client = httpx.AsyncClient()
+
+    async def __aenter__(self):
+        # type: () -> "ClientContext"
+        await self._http_client.__aenter__()
+        return self
+
+    async def __aexit__(self, *args):
+        await self._http_client.__aexit__(*args)
 
     @staticmethod
     def from_url(full_url):
@@ -196,19 +205,19 @@ class ClientContext(ClientRuntimeContext):
         self.authentication_context.with_cookies(cookie_source, ttl_seconds)
         return self
 
-    def execute_batch(self, items_per_batch=100, success_callback=None):
+    async def execute_batch(self, items_per_batch=100, success_callback=None):
         # type: (int, Callable[[List[ClientObject|ClientResult]], None]) -> Self
         """
         Construct and submit to a server a batch request
         :param int items_per_batch: Maximum to be selected for bulk operation
         :param (List[ClientObject|ClientResult])-> None success_callback: A success callback
         """
-        batch_request = ODataBatchV3Request(JsonLightFormat())
+        batch_request = ODataBatchV3Request(JsonLightFormat(), self._http_client)
         batch_request.beforeExecute += self._authenticate_request
         batch_request.beforeExecute += self._ensure_form_digest
         while self.has_pending_request:
             qry = self._get_next_query(items_per_batch)
-            batch_request.execute_query(qry)
+            await batch_request.execute_query(qry)
             if callable(success_callback):
                 success_callback(qry.return_type)
         return self
@@ -216,39 +225,38 @@ class ClientContext(ClientRuntimeContext):
     def pending_request(self):
         """Provides access to underlying request instance"""
         if self._pending_request is None:
-            self._pending_request = ODataRequest(JsonLightFormat())
+            self._pending_request = ODataRequest(JsonLightFormat(), self._http_client)
             self._pending_request.beforeExecute += self._authenticate_request
             self._pending_request.beforeExecute += self._build_modification_query
         return self._pending_request
 
-    def _ensure_form_digest(self, request):
+    async def _ensure_form_digest(self, request):
         # type: (RequestOptions) -> None
         if not self.context_info.is_valid:
-            self._ctx_web_info = self._get_context_web_information()
+            self._ctx_web_info = await self._get_context_web_information()
         request.set_header("X-RequestDigest", self._ctx_web_info.FormDigestValue)
 
-    def _get_context_web_information(self):
+    async def _get_context_web_information(self):
         """Returns an ContextWebInformation object that specifies metadata about the site"""
-        client = ODataRequest(JsonLightFormat())
+        client = ODataRequest(JsonLightFormat(), self._http_client)
         client.beforeExecute += self._authenticate_request
         for e in self.pending_request().beforeExecute:
             if not EventHandler.is_system(e):
                 client.beforeExecute += e
         request = RequestOptions("{0}/contextInfo".format(self.service_root_url))
         request.method = HttpMethod.Post
-        response = client.execute_request_direct(request)
+        response = await client.execute_request_direct(request)
         json_format = JsonLightFormat()
         json_format.function = "GetContextWebInformation"
         return_value = ContextWebInformation()
         client.map_json(response.json(), return_value, json_format)
         return return_value
 
-    def execute_query_with_incremental_retry(self, max_retry=5):
+    async def execute_query_with_incremental_retry(self, max_retry=5):
         """Handles throttling requests."""
         settings = {"timeout": 0}
 
         def _try_process_if_failed(retry, ex):
-            # type: (int, RequestException) -> None
             """
             check if request was throttled - http status code 429
             or check is request failed due to server unavailable - http status code 503
@@ -258,7 +266,7 @@ class ClientContext(ClientRuntimeContext):
                 if retry_after is not None:
                     settings["timeout"] = int(retry_after)
 
-        self.execute_query_retry(
+        await self.execute_query_retry(
             timeout_secs=settings.get("timeout"),
             max_retry=max_retry,
             failure_callback=_try_process_if_failed,
@@ -277,16 +285,16 @@ class ClientContext(ClientRuntimeContext):
             ctx.clear()
         return ctx
 
-    def _authenticate_request(self, request):
+    async def _authenticate_request(self, request):
         # type: (RequestOptions) -> None
         """Authenticate request"""
-        self.authentication_context.authenticate_request(request)
+        await self.authentication_context.authenticate_request(request)
 
-    def _build_modification_query(self, request):
+    async def _build_modification_query(self, request):
         # type: (RequestOptions) -> None
         """Constructs SharePoint specific modification OData request"""
         if request.method == HttpMethod.Post:
-            self._ensure_form_digest(request)
+            await self._ensure_form_digest(request)
         # set custom SharePoint control headers
         if isinstance(self.pending_request().json_format, JsonLightFormat):
             if isinstance(self.current_query, DeleteEntityQuery):

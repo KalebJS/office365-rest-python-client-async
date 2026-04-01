@@ -19,8 +19,8 @@ class TestCallRecord(GraphTestCase):
     #    result = self.client.communications.calls.create("https://bot.mediadev8.com/callback").execute_query()
     #    self.assertIsNotNone(result.resource_path)
 
-    def test2_get_direct_routing_calls(self):
+    async def test2_get_direct_routing_calls(self):
         result = (
-            self.app_client.communications.call_records.get_direct_routing_calls().execute_query()
+            await self.app_client.communications.call_records.get_direct_routing_calls().execute_query()
         )
         self.assertIsNotNone(result.value)

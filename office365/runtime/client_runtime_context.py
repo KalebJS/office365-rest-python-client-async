@@ -1,9 +1,8 @@
+import asyncio
 from abc import ABC, abstractmethod
-from time import sleep
 from typing import TYPE_CHECKING, AnyStr, Callable, List
 
-import requests
-from requests import Response
+import httpx
 from typing_extensions import Self
 
 from office365.runtime.client_request import ClientRequest
@@ -36,11 +35,9 @@ class ClientRuntimeContext(ABC):
         # type: (ClientQuery) -> RequestOptions
         """Builds a request"""
         self._current_query = query
-        request = self.pending_request().build_request(query)
-        self.pending_request().beforeExecute.notify(request)
-        return request
+        return self.pending_request().build_request(query)
 
-    def execute_query_retry(
+    async def execute_query_retry(
         self,
         max_retry=5,
         timeout_secs=5,
@@ -54,13 +51,13 @@ class ClientRuntimeContext(ABC):
         :param int max_retry: Number of times to retry the request
         :param int timeout_secs: Seconds to wait before retrying the request.
         :param (office365.runtime.client_object.ClientObject)-> None success_callback:
-        :param (int, requests.exceptions.RequestException)-> None failure_callback:
+        :param (int, Exception)-> None failure_callback:
         :param exceptions: tuple of exceptions that we retry
         """
 
         for retry in range(1, max_retry + 1):
             try:
-                self.execute_query()
+                await self.execute_query()
                 if callable(success_callback):
                     success_callback(self.current_query.return_type)
                 break
@@ -68,7 +65,7 @@ class ClientRuntimeContext(ABC):
                 self.add_query(self.current_query)
                 if callable(failure_callback):
                     failure_callback(retry, e)
-                sleep(timeout_secs)
+                await asyncio.sleep(timeout_secs)
 
     @abstractmethod
     def pending_request(self):
@@ -100,12 +97,15 @@ class ClientRuntimeContext(ABC):
             return self
         query = self._queries[-1]
 
-        def _prepare_request(request):
+        async def _prepare_request(request):
             # type: (RequestOptions) -> None
             if self.current_query.id == query.id:
                 if once:
                     self.pending_request().beforeExecute -= _prepare_request
-                action(request)
+                if asyncio.iscoroutinefunction(action):
+                    await action(request)
+                else:
+                    action(request)
 
         self.pending_request().beforeExecute += _prepare_request
         return self
@@ -118,28 +118,35 @@ class ClientRuntimeContext(ABC):
         :param bool once: Flag which determines whether action is executed once or multiple times
         """
 
-        def _process_request(request):
+        async def _process_request(request):
             # type: (RequestOptions) -> None
             if once:
                 self.pending_request().beforeExecute -= _process_request
-            action(request)
+            if asyncio.iscoroutinefunction(action):
+                await action(request)
+            else:
+                action(request)
 
         self.pending_request().beforeExecute += _process_request
         return self
 
     def after_query_execute(self, action, execute_first=False, include_response=False):
-        # type: (Callable[[T|Response], None], bool, bool) -> Self
+        # type: (Callable[[T|httpx.Response], None], bool, bool) -> Self
         """Attach an event handler which is triggered after query is submitted to server"""
         if len(self._queries) == 0:
             return self
         query = self._queries[-1]
 
-        def _process_response(resp):
-            # type: (Response) -> None
+        async def _process_response(resp):
+            # type: (httpx.Response) -> None
             resp.raise_for_status()
             if self.current_query.id == query.id:
                 self.pending_request().afterExecute -= _process_response
-                action(resp if include_response else query.return_type)
+                result = resp if include_response else query.return_type
+                if asyncio.iscoroutinefunction(action):
+                    await action(result)
+                else:
+                    action(result)
 
         self.pending_request().afterExecute += _process_response
 
@@ -149,29 +156,32 @@ class ClientRuntimeContext(ABC):
         return self
 
     def after_execute(self, action, once=True):
-        # type: (Callable[[Response], None], bool) -> Self
+        # type: (Callable[[httpx.Response], None], bool) -> Self
         """Attach an event handler which is triggered after request is submitted to server"""
 
-        def _process_response(response):
-            # type: (Response) -> None
+        async def _process_response(response):
+            # type: (httpx.Response) -> None
             if once:
                 self.pending_request().afterExecute -= _process_response
-            action(response)
+            if asyncio.iscoroutinefunction(action):
+                await action(response)
+            else:
+                action(response)
 
         self.pending_request().afterExecute += _process_response
         return self
 
-    def execute_request_direct(self, path):
-        # type: (str) -> Response
+    async def execute_request_direct(self, path):
+        # type: (str) -> httpx.Response
         full_url = "".join([self.service_root_url, "/", path])
         request = RequestOptions(full_url)
-        return self.pending_request().execute_request_direct(request)
+        return await self.pending_request().execute_request_direct(request)
 
-    def execute_query(self):
+    async def execute_query(self):
         """Submit request(s) to the server"""
         while self.has_pending_request:
             qry = self._get_next_query()
-            self.pending_request().execute_query(qry)
+            await self.pending_request().execute_query(qry)
         return self
 
     def add_query(self, query):
@@ -189,13 +199,13 @@ class ClientRuntimeContext(ABC):
         """Loads API metadata"""
         return_type = ClientResult(self)
 
-        def _construct_request(request):
+        async def _construct_request(request):
             # type: (RequestOptions) -> None
             request.url += "/$metadata"
             request.method = HttpMethod.Get
 
-        def _process_response(response):
-            # type: (requests.Response) -> None
+        async def _process_response(response):
+            # type: (httpx.Response) -> None
             response.raise_for_status()
             return_type.set_property("__value", response.content)
 

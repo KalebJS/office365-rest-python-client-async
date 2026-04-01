@@ -6,24 +6,34 @@ uv sync
 
 ## Running tests
 
-Most of the tests are end-to-end - operations are invoked against actual tenant (not mocked).
-So one has to configure his/her office/sharepoint credentials.
-To do so, create a file ```.env``` like this (replace the bracketed values by your values):
+Most of the tests are end-to-end — operations are invoked against an actual tenant (not mocked).
+Configure credentials before running them.
+
+### 1. Create a `.env` file (never committed — it's in `.gitignore`)
 
 ```bash
 export office365_python_sdk_securevars='{username};{password};{client_id};{client_secret}'
 ```
 
-This file is in .gitignore, so it will never be committed.
+Indices in the semicolon-separated string:
+- `[1]` — password (user credentials)
+- `[3]` — client secret (app credentials)
+
+### 2. Source and run
 
 ```bash
-. .env   # source it to export the variable
-pytest ...  # run the test(s) you need...
+. .env
+pytest tests/directory/test_user.py -v        # single file
+pytest tests/ -v                               # full suite
 ```
+
+Tests use `pytest-asyncio` with `asyncio_mode = "auto"` (configured in `pyproject.toml`),
+so no per-test `@pytest.mark.asyncio` decorators are needed. All test methods are
+`async def` and all `execute_query()` / `execute_query_retry()` calls are `await`ed.
 
 ## Configure Tenant
 
-Roles:
+Required roles:
 
 - Global reader
 - Groups admin

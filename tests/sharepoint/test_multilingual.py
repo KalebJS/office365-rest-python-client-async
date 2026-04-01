@@ -7,8 +7,8 @@ class TestMultilingual(SPTestCase):
 
     site_page = None  # type: SitePage
 
-    def test1_is_web_multilingual(self):
-        web = (
+    async def test1_is_web_multilingual(self):
+        web = await (
             self.client.web.select(["IsMultilingual", "SupportedUILanguageIds"])
             .expand(["MultilingualSettings"])
             .get()
@@ -18,16 +18,18 @@ class TestMultilingual(SPTestCase):
         self.assertIsNotNone(web.supported_ui_language_ids)
         self.assertIsNotNone(web.multilingual_settings)
 
-    def test2_create_page(self):
+    async def test2_create_page(self):
         page_title = "My Page"
-        site_page = self.client.site_pages.create_page(
+        site_page = await self.client.site_pages.create_page(
             page_title, language="en-us"
         ).execute_query()
         self.assertIsNotNone(site_page.resource_path)
         self.__class__.site_page = site_page
 
-    def test3_get_page_language(self):
-        site_page = self.__class__.site_page.get().select(["Language"]).execute_query()
+    async def test3_get_page_language(self):
+        site_page = (
+            await self.__class__.site_page.get().select(["Language"]).execute_query()
+        )
         self.assertIsNotNone(site_page.language)
 
     # The Machine Translations Service API will no longer be supported as of the end of July 2022

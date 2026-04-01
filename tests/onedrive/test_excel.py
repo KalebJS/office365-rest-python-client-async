@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 from office365.onedrive.driveitems.driveItem import DriveItem
@@ -6,10 +7,10 @@ from office365.onedrive.workbooks.tables.table import WorkbookTable
 from tests.graph_case import GraphTestCase
 
 
-def upload_excel(target_drive):
+async def upload_excel(target_drive):
     # type: (Drive) -> DriveItem
     path = "{0}/../data/Financial Sample.xlsx".format(os.path.dirname(__file__))
-    return target_drive.root.upload_file(path).execute_query()
+    return await target_drive.root.upload_file(path).execute_query()
 
 
 class TestExcel(GraphTestCase):
@@ -21,59 +22,68 @@ class TestExcel(GraphTestCase):
     @classmethod
     def setUpClass(cls):
         super(TestExcel, cls).setUpClass()
-        cls.target_item = upload_excel(cls.client.me.drive)
-        assert cls.target_item.resource_path is not None
+
+        async def _async_setup():
+            cls.target_item = await upload_excel(cls.client.me.drive)
+            assert cls.target_item.resource_path is not None
+
+        asyncio.run(_async_setup())
 
     @classmethod
     def tearDownClass(cls):
-        cls.target_item.delete_object().execute_query_retry()
+        async def _async_teardown():
+            await cls.target_item.delete_object().execute_query_retry()
 
-    def test1_get_workbook(self):
-        workbook = self.__class__.target_item.workbook.get().execute_query_retry()
+        asyncio.run(_async_teardown())
+
+    async def test1_get_workbook(self):
+        workbook = await self.__class__.target_item.workbook.get().execute_query_retry()
         self.assertIsNotNone(workbook.resource_path)
 
-    def test2_create_workbook_table(self):
-        table = self.__class__.target_item.workbook.tables.add(
+    async def test2_create_workbook_table(self):
+        table = await self.__class__.target_item.workbook.tables.add(
             "A10000:C10002", True
         ).execute_query()
         self.assertIsNotNone(table.resource_path)
         self.__class__.table = table
 
-    def test3_list_workbook_tables(self):
-        tables = self.__class__.target_item.workbook.tables.get().execute_query_retry()
+    async def test3_list_workbook_tables(self):
+        tables = (
+            await self.__class__.target_item.workbook.tables.get().execute_query_retry()
+        )
         self.assertIsNotNone(tables.resource_path)
         self.assertGreater(len(tables), 0)
 
-    def test4_data_body_range(self):
-        result = self.__class__.table.data_body_range().execute_query()
+    async def test4_data_body_range(self):
+        result = await self.__class__.table.data_body_range().execute_query()
         self.assertIsNotNone(result.address)
 
-    def test5_create_table_column(self):
-        column = self.__class__.table.columns.add(3, "Column4").execute_query()
+    async def test5_create_table_column(self):
+        column = await self.__class__.table.columns.add(3, "Column4").execute_query()
         self.assertIsNotNone(column.resource_path)
 
-    def test6_create_table_column_count(self):
-        result = self.__class__.table.columns.count().execute_query()
+    async def test6_create_table_column_count(self):
+        result = await self.__class__.table.columns.count().execute_query()
         self.assertGreater(result.value, 0)
 
-    def test7_list_table_columns(self):
-        columns = self.__class__.table.columns.get().execute_query()
+    async def test7_list_table_columns(self):
+        columns = await self.__class__.table.columns.get().execute_query()
         self.assertIsNotNone(columns.resource_path)
 
-    def test8_list_table_rows(self):
-        rows = self.__class__.table.rows.get().execute_query()
+    async def test8_list_table_rows(self):
+        rows = await self.__class__.table.rows.get().execute_query()
         self.assertIsNotNone(rows.resource_path)
 
-    def test9_create_table_rows(self):
-        row = self.__class__.table.rows.add(
+    async def test9_create_table_rows(self):
+        row = await self.__class__.table.rows.add(
             [["Val11", "Val12", "Val13", "Val14"]]
         ).execute_query()
         self.assertIsNotNone(row.resource_path)
         self.assertIsNotNone(row.index)
         self.assertIsNotNone(row.values)
 
-    def test_10_table_rows_count(self):
-        result = self.__class__.table.rows.count().execute_query()
+    async def test_10_table_rows_count(self):
+        result = await self.__class__.table.rows.count().execute_query()
         self.assertIsNotNone(result.value)
         self.assertGreater(result.value, 0)
 
@@ -82,12 +92,12 @@ class TestExcel(GraphTestCase):
     #    self.assertIsNotNone(result.resource_path)
     #    self.assertIsNotNone(result.values)
 
-    def test_12_table_range(self):
-        result = self.__class__.table.range().execute_query()
+    async def test_12_table_range(self):
+        result = await self.__class__.table.range().execute_query()
         self.assertIsNotNone(result.address)
 
-    def test_13_delete_workbook_table(self):
-        self.__class__.table.delete_object().execute_query()
+    async def test_13_delete_workbook_table(self):
+        await self.__class__.table.delete_object().execute_query()
 
     # def test_14_workbook_create_session(self):
     #    result = self.__class__.target_item.workbook.create_session().execute_query()

@@ -6,7 +6,7 @@ from functools import partial
 from os.path import isfile, join
 from typing import IO, AnyStr, Callable, Optional
 
-import requests
+import httpx
 from typing_extensions import Self
 
 from office365.delta_path import DeltaPath
@@ -256,13 +256,13 @@ class DriveItem(BaseItem):
         :param int chunk_size: chunk size
         """
 
-        def _start_upload(result):
+        async def _start_upload(result):
             # type: (ClientResult[UploadSession]) -> None
             with open(source_path, "rb") as local_file:
                 session_request = UploadSessionRequest(
-                    local_file, chunk_size, chunk_uploaded
+                    local_file, chunk_size, self.context._http_client, chunk_uploaded
                 )
-                session_request.execute_query(qry)
+                await session_request.execute_query(qry)
 
         file_name = os.path.basename(source_path)
         return_type = DriveItem(self.context, UrlPath(file_name, self.resource_path))
@@ -438,14 +438,15 @@ class DriveItem(BaseItem):
             # type: (RequestOptions) -> None
             request.stream = True
 
-        def _process_response(response):
-            # type: (requests.Response) -> None
+        async def _process_response(response):
+            # type: (httpx.Response) -> None
             bytes_read = 0
-            for chunk in response.iter_content(chunk_size=chunk_size):
+            async for chunk in response.aiter_bytes(chunk_size=chunk_size):
                 bytes_read += len(chunk)
                 if callable(chunk_downloaded):
                     chunk_downloaded(bytes_read)
                 file_object.write(chunk)
+            await response.aclose()
 
         self.get_content().before_execute(_construct_request).after_execute(
             _process_response, include_response=True

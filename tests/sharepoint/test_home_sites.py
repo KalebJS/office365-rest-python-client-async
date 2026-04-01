@@ -13,6 +13,6 @@ class TestHomeSites(TestCase):
         )
         cls.tenant = Tenant(client)
 
-    def test1_get_home_sites(self):
-        result = self.tenant.get_home_sites().execute_query()
+    async def test1_get_home_sites(self):
+        result = await self.tenant.get_home_sites().execute_query()
         self.assertIsNotNone(result.value)

@@ -3,29 +3,31 @@ from tests.graph_case import GraphTestCase
 
 
 class TestSearchOneDrive(GraphTestCase):
-    def test1_search_files(self):
-        result = self.client.search.query_drive_items("Guide.docx").execute_query()
+    async def test1_search_files(self):
+        result = await self.client.search.query_drive_items(
+            "Guide.docx"
+        ).execute_query()
         self.assertIsNotNone(result.value)
 
-    def test2_search_messages(self):
-        result = self.client.search.query_messages("Jon Doe").execute_query()
+    async def test2_search_messages(self):
+        result = await self.client.search.query_messages("Jon Doe").execute_query()
         self.assertIsNotNone(result.value)
 
     # def test3_search_events(self):
     #    result = self.client.search.query_events("Jon Doe").execute_query()
     #    self.assertIsNotNone(result.value)
 
-    def test4_search_list_items(self):
-        result = self.client.search.query_list_items("Guide").execute_query()
+    async def test4_search_list_items(self):
+        result = await self.client.search.query_list_items("Guide").execute_query()
         self.assertIsNotNone(result.value)
 
     @requires_delegated_permission("People.Read")
-    def test5_search_people_by_name(self):
-        result = self.client.search.query_peoples("John").execute_query()
+    async def test5_search_people_by_name(self):
+        result = await self.client.search.query_peoples("John").execute_query()
         self.assertIsNotNone(result.value)
 
-    def test6_search_sites(self):
-        result = self.client.search.query_sites("team").execute_query()
+    async def test6_search_sites(self):
+        result = await self.client.search.query_sites("team").execute_query()
         self.assertIsNotNone(result.value)
 
     # @requires_delegated_permission(

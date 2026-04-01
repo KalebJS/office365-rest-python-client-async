@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import IsolatedAsyncioTestCase
 
 from office365.graph_client import GraphClient
 from tests import (
@@ -9,7 +9,7 @@ from tests import (
 )
 
 
-class GraphTestCase(TestCase):
+class GraphTestCase(IsolatedAsyncioTestCase):
     """Microsoft Graph specific test case base class"""
 
     client = None  # type: GraphClient

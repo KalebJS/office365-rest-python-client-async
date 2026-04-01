@@ -2,7 +2,7 @@ import os
 import typing
 from typing import Callable
 
-import requests
+import httpx
 from typing_extensions import Self
 
 from office365.runtime.client_request import ClientRequest
@@ -12,9 +12,9 @@ from office365.runtime.queries.upload_session import UploadSessionQuery
 
 
 class UploadSessionRequest(ClientRequest):
-    def __init__(self, file_object, chunk_size, chunk_uploaded=None):
-        # type: (typing.IO, int, Callable[[int], None]) -> None
-        super(UploadSessionRequest, self).__init__()
+    def __init__(self, file_object, chunk_size, http_client, chunk_uploaded=None):
+        # type: (typing.IO, int, httpx.AsyncClient, Callable[[int], None]) -> None
+        super(UploadSessionRequest, self).__init__(http_client)
         self._file_object = file_object
         self._chunk_size = chunk_size
         self._chunk_uploaded = chunk_uploaded
@@ -35,16 +35,16 @@ class UploadSessionRequest(ClientRequest):
         request.data = self._range_data
         return request
 
-    def process_response(self, response, query):
-        # type: (requests.Response, UploadSessionQuery) -> None
+    async def process_response(self, response, query):
+        # type: (httpx.Response, UploadSessionQuery) -> None
         response.raise_for_status()
         if callable(self._chunk_uploaded):
             self._chunk_uploaded(self.range_end)
 
-    def execute_query(self, query):
+    async def execute_query(self, query):
         # type: (UploadSessionQuery) -> None
         for self._range_data in self._read_next():
-            super(UploadSessionRequest, self).execute_query(query)
+            await super(UploadSessionRequest, self).execute_query(query)
 
     def _read_next(self):
         while True:
