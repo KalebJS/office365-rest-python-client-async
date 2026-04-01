@@ -6,25 +6,19 @@ from tests.graph_case import GraphTestCase
 
 
 class TestOutlookUser(GraphTestCase):
-    @requires_delegated_permission(
-        "User.Read", "User.Read.All", "User.ReadBasic.All", "User.ReadWrite.All"
-    )
+    @requires_delegated_permission("User.Read", "User.Read.All", "User.ReadBasic.All", "User.ReadWrite.All")
     async def test1_my_supported_languages(self):
         result = await self.client.me.outlook.supported_languages().execute_query()
         self.assertIsNotNone(result.value)
 
-    @requires_delegated_permission(
-        "User.Read", "User.Read.All", "User.ReadBasic.All", "User.ReadWrite.All"
-    )
+    @requires_delegated_permission("User.Read", "User.Read.All", "User.ReadBasic.All", "User.ReadWrite.All")
     async def test2_my_supported_time_zones(self):
         result = await self.client.me.outlook.supported_time_zones().execute_query()
         self.assertIsNotNone(result.value)
 
     # @requires_delegated_permission("Mail.Read",	"Mail.Read.Shared")
     async def test4_get_mail_tips(self):
-        result = await self.client.me.get_mail_tips(
-            [test_user_principal_name]
-        ).execute_query()
+        result = await self.client.me.get_mail_tips([test_user_principal_name]).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test5_enable_automatic_replies(self):

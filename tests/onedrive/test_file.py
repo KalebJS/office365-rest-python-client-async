@@ -23,9 +23,7 @@ class TestFile(GraphTestCase):
         lib_name = create_unique_name("Lib")
 
         async def _async_setup():
-            lib = await cls.client.sites.root.lists.add(
-                lib_name, ListTemplateType.documentLibrary
-            ).execute_query()
+            lib = await cls.client.sites.root.lists.add(lib_name, ListTemplateType.documentLibrary).execute_query()
             cls.target_drive = lib.drive
 
         asyncio.run(_async_setup())
@@ -39,24 +37,18 @@ class TestFile(GraphTestCase):
 
     async def test1_create_folder(self):
         target_folder_name = "New_" + uuid.uuid4().hex
-        folder = await self.target_drive.root.create_folder(
-            target_folder_name
-        ).execute_query()
+        folder = await self.target_drive.root.create_folder(target_folder_name).execute_query()
         self.assertEqual(folder.name, target_folder_name)
         self.__class__.target_folder = folder
 
     async def test2_get_folder_permissions(self):
-        folder_perms = (
-            await self.__class__.target_folder.permissions.get().execute_query()
-        )
+        folder_perms = await self.__class__.target_folder.permissions.get().execute_query()
         self.assertIsNotNone(folder_perms.resource_path)
 
     async def test3_upload_file(self):
         file_name = "SharePoint User Guide.docx"
         file_path = "{0}/../data/{1}".format(os.path.dirname(__file__), file_name)
-        self.__class__.target_file = await self.target_drive.root.upload_file(
-            file_path
-        ).execute_query()
+        self.__class__.target_file = await self.target_drive.root.upload_file(file_path).execute_query()
         self.assertIsNotNone(self.target_file.web_url)
 
     async def test4_preview_file(self):
@@ -68,20 +60,12 @@ class TestFile(GraphTestCase):
 
     async def test6_checkout(self):
         await self.__class__.target_file.checkout().execute_query()
-        target_item = (
-            await self.__class__.target_file.get()
-            .select(["publication"])
-            .execute_query()
-        )
+        target_item = await self.__class__.target_file.get().select(["publication"]).execute_query()
         self.assertEqual(target_item.publication.level, "checkout")
 
     async def test7_checkin(self):
         await self.__class__.target_file.checkin("").execute_query()
-        target_item = (
-            await self.__class__.target_file.get()
-            .select(["publication"])
-            .execute_query()
-        )
+        target_item = await self.__class__.target_file.get().select(["publication"]).execute_query()
         self.assertEqual(target_item.publication.level, "published")
 
     async def test8_list_versions(self):
@@ -99,11 +83,7 @@ class TestFile(GraphTestCase):
     async def test_11_upload_file_session(self):
         file_name = "big_buck_bunny.mp4"
         local_path = "{0}/../data/{1}".format(os.path.dirname(__file__), file_name)
-        target_file = (
-            await self.target_drive.root.resumable_upload(local_path)
-            .get()
-            .execute_query()
-        )
+        target_file = await self.target_drive.root.resumable_upload(local_path).get().execute_query()
         self.assertIsNotNone(target_file.web_url)
 
     async def test_12_download_file(self):
@@ -130,9 +110,7 @@ class TestFile(GraphTestCase):
     async def test_15_get_activities_by_interval(self):
         end_time = datetime.now()
         start_time = end_time - timedelta(days=14)
-        result = await self.__class__.target_file.get_activities_by_interval(
-            start_time, end_time, "day"
-        ).execute_query()
+        result = await self.__class__.target_file.get_activities_by_interval(start_time, end_time, "day").execute_query()
         self.assertIsNotNone(result)
 
     async def test_16_get_item_analytics(self):
@@ -140,9 +118,7 @@ class TestFile(GraphTestCase):
         self.assertIsNotNone(result.resource_path)
 
     async def test_17_extract_sensitivity_labels(self):
-        result = (
-            await self.__class__.target_file.extract_sensitivity_labels().execute_query()
-        )
+        result = await self.__class__.target_file.extract_sensitivity_labels().execute_query()
         self.assertIsNotNone(result.value)
 
     async def test_18_delete_file(self):

@@ -27,10 +27,6 @@ class TestSiteScript(SPTestCase):
         self.__class__.site_script_count = len(result.value)
 
     async def test_3_delete(self):
-        await SiteScriptUtility.delete_site_script(
-            self.client, self.site_script_meta.Id
-        ).execute_query()
-        result_after = await SiteScriptUtility.get_site_scripts(
-            self.client
-        ).execute_query()
+        await SiteScriptUtility.delete_site_script(self.client, self.site_script_meta.Id).execute_query()
+        result_after = await SiteScriptUtility.get_site_scripts(self.client).execute_query()
         self.assertEqual(self.site_script_count - 1, len(result_after.value))

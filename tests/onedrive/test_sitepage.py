@@ -74,7 +74,5 @@ class TestSitePage(GraphTestCase):
         await page.delete_object().execute_query()
 
     async def test_12_get_site_page_list(self):
-        result = (
-            await self.test_site.lists.get_by_name("Site Pages").get().execute_query()
-        )
+        result = await self.test_site.lists.get_by_name("Site Pages").get().execute_query()
         self.assertIsNotNone(result.resource_path)

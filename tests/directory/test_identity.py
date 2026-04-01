@@ -8,13 +8,9 @@ from tests.decorators import requires_app_permission
 class TestIdentity(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = GraphClient(tenant=test_tenant).with_client_secret(
-            test_client_id, test_client_secret
-        )
+        cls.client = GraphClient(tenant=test_tenant).with_client_secret(test_client_id, test_client_secret)
 
-    @requires_app_permission(
-        "IdentityProvider.Read.All", "IdentityProvider.ReadWrite.All"
-    )
+    @requires_app_permission("IdentityProvider.Read.All", "IdentityProvider.ReadWrite.All")
     async def test1_list_identity_providers(self):
         result = await self.client.identity.identity_providers.get().execute_query()
         self.assertIsNotNone(result.resource_path)
@@ -24,9 +20,7 @@ class TestIdentity(TestCase):
         self.assertIsNotNone(result.resource_path)
 
     async def test3_available_provider_types(self):
-        result = (
-            await self.client.identity.identity_providers.available_provider_types().execute_query()
-        )
+        result = await self.client.identity.identity_providers.available_provider_types().execute_query()
         self.assertIsNotNone(result.value)
 
     # def test4_list_risky_users(self):
@@ -34,13 +28,9 @@ class TestIdentity(TestCase):
     #    self.assertIsNotNone(result.resource_path)
 
     async def test4_list_authentication_event_listeners(self):
-        result = (
-            await self.client.identity.authentication_event_listeners.get().execute_query()
-        )
+        result = await self.client.identity.authentication_event_listeners.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     async def test5_list_conditional_access_policies(self):
-        result = (
-            await self.client.identity.conditional_access.policies.get().execute_query()
-        )
+        result = await self.client.identity.conditional_access.policies.get().execute_query()
         self.assertIsNotNone(result.resource_path)

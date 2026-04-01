@@ -28,9 +28,7 @@ class TestTenant(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        client = ClientContext(test_admin_site_url).with_credentials(
-            test_admin_credentials
-        )
+        client = ClientContext(test_admin_site_url).with_credentials(test_admin_credentials)
         cls.tenant = Tenant(client)
         cls.client = client
 
@@ -40,9 +38,7 @@ class TestTenant(TestCase):
         self.assertIsNotNone(self.tenant.root_site_url)
 
     async def test2_get_tenant_settings(self):
-        tenant_settings = (
-            await TenantSettings.current(self.client).get().execute_query()
-        )
+        tenant_settings = await TenantSettings.current(self.client).get().execute_query()
         self.assertIsNotNone(tenant_settings.resource_path)
 
     async def test3_get_migration_center(self):
@@ -55,9 +51,7 @@ class TestTenant(TestCase):
     #    self.assertIsNotNone(result.value)
 
     async def test4_get_site_health_status(self):
-        result = await self.tenant.get_site_health_status(
-            test_team_site_url
-        ).execute_query()
+        result = await self.tenant.get_site_health_status(test_team_site_url).execute_query()
         self.assertIsNotNone(result.value)
         self.assertIsInstance(result.value, PortalHealthStatus)
 
@@ -68,16 +62,12 @@ class TestTenant(TestCase):
         self.assertIsNotNone(result.value)
 
     async def test6_list_sites(self):
-        sites = (
-            await self.tenant.get_site_properties_from_sharepoint_by_filters().execute_query()
-        )
+        sites = await self.tenant.get_site_properties_from_sharepoint_by_filters().execute_query()
         self.assertIsInstance(sites, SitePropertiesCollection)
 
     async def test7_get_site_secondary_administrators(self):
         target_site = await self.client.site.select(["Id"]).get().execute_query()
-        result = await self.tenant.get_site_secondary_administrators(
-            target_site.id
-        ).execute_query()
+        result = await self.tenant.get_site_secondary_administrators(target_site.id).execute_query()
         self.assertIsNotNone(result.value)
 
     # def test8_set_site_secondary_administrators(self):
@@ -102,27 +92,18 @@ class TestTenant(TestCase):
     #    self.assertIsNotNone(site_props)
 
     async def test_10_get_site_by_url(self):
-        site_props = await self.tenant.get_site_properties_by_url(
-            test_site_url, True
-        ).execute_query()
+        site_props = await self.tenant.get_site_properties_by_url(test_site_url, True).execute_query()
         self.assertIsNotNone(site_props.url)
         # self.assertIsNotNone(site_props.resource_path)
         self.__class__.target_site_props = site_props
 
     async def test_11_update_site(self):
         site_props_to_update = self.__class__.target_site_props
-        site_props_to_update.set_property(
-            "SharingCapability", SharingCapabilities.ExternalUserAndGuestSharing
-        )
+        site_props_to_update.set_property("SharingCapability", SharingCapabilities.ExternalUserAndGuestSharing)
         await site_props_to_update.update().execute_query()
 
-        updated_site_props = await self.tenant.get_site_properties_by_url(
-            test_site_url, True
-        ).execute_query()
-        self.assertTrue(
-            updated_site_props.sharing_capability
-            == SharingCapabilities.ExternalUserAndGuestSharing
-        )
+        updated_site_props = await self.tenant.get_site_properties_by_url(test_site_url, True).execute_query()
+        self.assertTrue(updated_site_props.sharing_capability == SharingCapabilities.ExternalUserAndGuestSharing)
 
     #    self.assertTrue(site_props_to_update.properties['Status'], 'Active')
 
@@ -156,15 +137,11 @@ class TestTenant(TestCase):
         self.assertIsNotNone(result.resource_path)
 
     async def test_18_get_tenant_sharing_status(self):
-        result = (
-            await self.tenant.admin_settings.get_tenant_sharing_status().execute_query()
-        )
+        result = await self.tenant.admin_settings.get_tenant_sharing_status().execute_query()
         self.assertIsNotNone(result.value)
 
     async def test_19_get_site_thumbnail_logo(self):
-        result = await self.tenant.get_site_thumbnail_logo(
-            test_site_url
-        ).execute_query()
+        result = await self.tenant.get_site_thumbnail_logo(test_site_url).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test_20_get_tenant_cdn_api(self):
@@ -214,15 +191,11 @@ class TestTenant(TestCase):
             SPOWebAppServicePrincipalPublic,
         )
 
-        result = (
-            await SPOWebAppServicePrincipalPublic(self.client).get().execute_query()
-        )
+        result = await SPOWebAppServicePrincipalPublic(self.client).get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     async def test_30_get_cdn_urls(self):
-        result = await self.tenant.cdn_api.get_cdn_urls(
-            [test_team_site_url]
-        ).execute_query()
+        result = await self.tenant.cdn_api.get_cdn_urls([test_team_site_url]).execute_query()
         self.assertIsNotNone(result.value)
 
     # You need a SharePoint Advanced Management license to perform this action

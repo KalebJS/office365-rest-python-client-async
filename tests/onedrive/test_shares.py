@@ -15,9 +15,7 @@ class TestShares(GraphTestCase):
 
         async def _async_setup():
             cls.file_item = await (
-                cls.client.sites.get_by_url(test_team_site_url)
-                .drive.root.upload_file(path)
-                .execute_query()
+                cls.client.sites.get_by_url(test_team_site_url).drive.root.upload_file(path).execute_query()
             )
             assert cls.file_item.resource_path is not None
 
@@ -31,13 +29,7 @@ class TestShares(GraphTestCase):
         asyncio.run(_async_teardown())
 
     async def test1_get_file_by_abs_url(self):
-        file_abs_url = "{0}/Shared Documents/Financial Sample.xlsx".format(
-            test_team_site_url
-        )
-        result = (
-            await self.client.shares.by_url(file_abs_url)
-            .drive_item.get()
-            .execute_query()
-        )
+        file_abs_url = "{0}/Shared Documents/Financial Sample.xlsx".format(test_team_site_url)
+        result = await self.client.shares.by_url(file_abs_url).drive_item.get().execute_query()
         self.assertIsNotNone(result.resource_path)
         self.assertTrue(result.is_file)

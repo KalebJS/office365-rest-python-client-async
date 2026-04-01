@@ -26,9 +26,7 @@ class TestGraphGroup(GraphTestCase):
                 result = await self.client.me.get_member_groups().execute_query()
                 self.assertIsNotNone(result.value)
                 filter_expr = "displayName eq '{0}'".format(result.value[0])
-                result = (
-                    await self.client.groups.filter(filter_expr).get().execute_query()
-                )
+                result = await self.client.groups.filter(filter_expr).get().execute_query()
                 self.__class__.target_group = result[0]
 
     @unittest.skipIf(directory_quota_exceeded, "Skipping, group was not be created")
@@ -49,11 +47,7 @@ class TestGraphGroup(GraphTestCase):
     @unittest.skipIf(directory_quota_exceeded, "Skipping, group was not be created")
     async def test5_add_group_owner(self):
         users = await (
-            self.client.users.filter(
-                "mail eq '{mail}'".format(mail=test_user_principal_name)
-            )
-            .get()
-            .execute_query()
+            self.client.users.filter("mail eq '{mail}'".format(mail=test_user_principal_name)).get().execute_query()
         )
         self.assertEqual(len(users), 1)
 
@@ -90,7 +84,5 @@ class TestGraphGroup(GraphTestCase):
         await grp_to_delete.delete_object(True).execute_query()
 
     async def test_11_get_changes(self):
-        changed_groups = (
-            await self.client.groups.delta.select(["displayName"]).get().execute_query()
-        )
+        changed_groups = await self.client.groups.delta.select(["displayName"]).get().execute_query()
         self.assertGreater(len(changed_groups), 0)

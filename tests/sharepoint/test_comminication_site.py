@@ -18,9 +18,7 @@ class TestCommunicationSite(TestCase):
 
     async def test1_create_site(self):
         site_alias = "site{0}".format(uuid.uuid4().hex)
-        comm_site = await self.client.create_communication_site(
-            site_alias, site_alias
-        ).execute_query()
+        comm_site = await self.client.create_communication_site(site_alias, site_alias).execute_query()
         self.assertIsNotNone(comm_site.resource_path)
         self.__class__.target_site = comm_site
 
@@ -41,20 +39,14 @@ class TestCommunicationSite(TestCase):
     #    self.assertIsNotNone(result.value)
 
     async def test7_register_hub_site(self):
-        tenant = Tenant.from_url(test_admin_site_url).with_credentials(
-            test_user_credentials
-        )
-        props = await tenant.register_hub_site(
-            self.__class__.target_site.url
-        ).execute_query()
+        tenant = Tenant.from_url(test_admin_site_url).with_credentials(test_user_credentials)
+        props = await tenant.register_hub_site(self.__class__.target_site.url).execute_query()
         self.assertIsNotNone(props.site_id)
         site = await self.__class__.target_site.get().execute_query()
         self.assertTrue(site.is_hub_site)
 
     async def test8_unregister_hub_site(self):
-        client_admin = ClientContext(test_admin_site_url).with_credentials(
-            test_user_credentials
-        )
+        client_admin = ClientContext(test_admin_site_url).with_credentials(test_user_credentials)
         tenant = Tenant(client_admin)
         await tenant.unregister_hub_site(self.__class__.target_site.url).execute_query()
 

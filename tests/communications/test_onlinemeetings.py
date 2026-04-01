@@ -18,17 +18,13 @@ class TestOnlineMeetings(GraphTestCase):
         pass
 
     async def test1_create_meeting(self):
-        meeting = await self.client.me.online_meetings.create(
-            subject="User Token Meeting"
-        ).execute_query()
+        meeting = await self.client.me.online_meetings.create(subject="User Token Meeting").execute_query()
         self.assertIsNotNone(meeting.resource_path)
         self.__class__.target_meeting = meeting
 
     async def test2_get_meeting(self):
         meeting_id = self.__class__.target_meeting.id
-        existing_meeting = (
-            await self.client.me.online_meetings[meeting_id].get().execute_query()
-        )
+        existing_meeting = await self.client.me.online_meetings[meeting_id].get().execute_query()
         self.assertIsNotNone(existing_meeting.resource_path)
 
     # def test3_get_virtual_appointment_join_web_url(self):

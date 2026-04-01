@@ -18,11 +18,7 @@ class TestContentType(SPTestCase):
         self.assertIsInstance(web_cts, ContentTypeCollection)
 
     async def test2_get_content_type_by_id(self):
-        ct = await (
-            self.client.site.root_web.content_types.get_by_id("0x0101")
-            .get()
-            .execute_query()
-        )
+        ct = await self.client.site.root_web.content_types.get_by_id("0x0101").get().execute_query()
         self.assertIsNotNone(ct.name)
 
     async def test3_create_content_type(self):
@@ -39,16 +35,12 @@ class TestContentType(SPTestCase):
 
     async def test5_set_value_for_ui_culture(self):
         ct = self.__class__.target_ct
-        result = await ct.name_resource.set_value_for_ui_culture(
-            "fi-FI", self.localized_title
-        ).execute_query()
+        result = await ct.name_resource.set_value_for_ui_culture("fi-FI", self.localized_title).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test6_get_value_for_ui_culture(self):
         ct = self.__class__.target_ct
-        result = await ct.name_resource.get_value_for_ui_culture(
-            "fi-FI"
-        ).execute_query()
+        result = await ct.name_resource.get_value_for_ui_culture("fi-FI").execute_query()
         self.assertIsNotNone(result.value)
         # self.assertEqual(result.value, self.localized_title)
 
@@ -60,7 +52,5 @@ class TestContentType(SPTestCase):
         self.assertTrue(before_count, len(web_cts) + 1)
 
     async def test9_get_content_types_changes(self):
-        changes = await self.client.web.get_changes(
-            ChangeQuery(content_type=True)
-        ).execute_query()
+        changes = await self.client.web.get_changes(ChangeQuery(content_type=True)).execute_query()
         self.assertGreater(len(changes), 0)

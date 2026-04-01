@@ -8,9 +8,7 @@ class TestMigration(SPTestCase):
     azure_container_info = None  # type: ProvisionedTemporaryAzureContainerInfo
 
     async def test1_provision_temporary_azure_container(self):
-        result = (
-            await self.client.site.provision_temporary_azure_container().execute_query()
-        )
+        result = await self.client.site.provision_temporary_azure_container().execute_query()
         self.assertTrue(result.value)
         self.__class__.azure_container_info = result.value
 

@@ -18,22 +18,16 @@ class TestPresence(GraphTestCase):
         self.assertIsNotNone(my_presence.resource_path)
 
     async def test2_set_my_preferred_presence(self):
-        my_presence = (
-            await self.client.me.presence.set_user_preferred_presence().execute_query()
-        )
+        my_presence = await self.client.me.presence.set_user_preferred_presence().execute_query()
         self.assertIsNotNone(my_presence.resource_path)
 
     async def test3_get_presences_by_user_id(self):
         me = await self.client.me.get().execute_query()
-        presences = await self.client.communications.get_presences_by_user_id(
-            [me.id]
-        ).execute_query()
+        presences = await self.client.communications.get_presences_by_user_id([me.id]).execute_query()
         self.assertIsNotNone(presences.resource_path)
 
     async def test4_set_status_message(self):
-        my_presence = await self.client.me.presence.set_status_message(
-            "Hey I'm currently in a meeting"
-        ).execute_query()
+        my_presence = await self.client.me.presence.set_status_message("Hey I'm currently in a meeting").execute_query()
         self.assertIsNotNone(my_presence.resource_path)
 
     async def test5_clear_my_presence(self):

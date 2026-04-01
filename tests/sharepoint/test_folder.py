@@ -16,9 +16,7 @@ class TestSharePointFolder(SPTestCase):
         cls.parent_folder = cls.client.web.default_document_library().root_folder
 
     async def test1_create_folder(self):
-        folder = await self.parent_folder.folders.add(
-            create_unique_name("input")
-        ).execute_query()
+        folder = await self.parent_folder.folders.add(create_unique_name("input")).execute_query()
         self.assertTrue(folder.exists)
         self.__class__.input_folder = folder
 
@@ -35,11 +33,7 @@ class TestSharePointFolder(SPTestCase):
         self.assertTrue(folder.exists)
 
     async def test5_get_by_path(self):
-        folder = await (
-            self.parent_folder.folders.get_by_path(self.__class__.input_folder.name)
-            .get()
-            .execute_query()
-        )
+        folder = await self.parent_folder.folders.get_by_path(self.__class__.input_folder.name).get().execute_query()
         self.assertIsNotNone(folder.unique_id)
 
     # def test6_get_by_path_with_props(self):
@@ -49,14 +43,10 @@ class TestSharePointFolder(SPTestCase):
 
     async def test7_update_folder_properties(self):
         list_item = self.__class__.input_folder.list_item_all_fields
-        await list_item.set_property(
-            "Title", "New folder title"
-        ).update().execute_query()
+        await list_item.set_property("Title", "New folder title").update().execute_query()
 
     async def test8_upload_file_into_folder(self):
-        uploaded_file = self.__class__.input_folder.upload_file(
-            "sample.txt", "Some content goes here..."
-        )
+        uploaded_file = self.__class__.input_folder.upload_file("sample.txt", "Some content goes here...")
         await self.client.execute_query()
         self.assertIsNotNone(uploaded_file.serverRelativeUrl)
 
@@ -69,12 +59,8 @@ class TestSharePointFolder(SPTestCase):
             self.assertIsNotNone(file.resource_path)
 
     async def test_10_copy_folder(self):
-        output_folder = await self.parent_folder.folders.add(
-            create_unique_name("output")
-        ).execute_query()
-        folder_to = await self.__class__.input_folder.copy_to(
-            output_folder
-        ).execute_query()
+        output_folder = await self.parent_folder.folders.add(create_unique_name("output")).execute_query()
+        folder_to = await self.__class__.input_folder.copy_to(output_folder).execute_query()
         files_to = await folder_to.files.get().execute_query()
         self.assertGreater(len(files_to), 0)
         self.__class__.output_folder = output_folder
@@ -96,9 +82,7 @@ class TestSharePointFolder(SPTestCase):
         self.__class__.deleted_folder_guid = result.value
 
     async def test_14_restore_folder(self):
-        recycle_item = self.client.web.recycle_bin.get_by_id(
-            self.__class__.deleted_folder_guid
-        )
+        recycle_item = self.client.web.recycle_bin.get_by_id(self.__class__.deleted_folder_guid)
         await recycle_item.restore().execute_query()
 
     async def test_15_get_folder_changes(self):

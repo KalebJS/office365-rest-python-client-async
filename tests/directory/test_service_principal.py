@@ -31,9 +31,7 @@ class TestServicePrincipal(GraphTestCase):
         asyncio.run(_async_teardown())
 
     async def test1_create_service_principal(self):
-        service_principal = await self.client.service_principals.add(
-            self.target_app.app_id
-        ).execute_query()
+        service_principal = await self.client.service_principals.add(self.target_app.app_id).execute_query()
         self.assertIsNotNone(service_principal.resource_path)
         self.__class__.target_object = service_principal
 
@@ -52,17 +50,11 @@ class TestServicePrincipal(GraphTestCase):
         self.assertIsNotNone(result.value)
 
     async def test4_get_by_app_id(self):
-        principal = await (
-            self.client.service_principals.get_by_app_id(self.target_app.app_id)
-            .get()
-            .execute_query()
-        )
+        principal = await self.client.service_principals.get_by_app_id(self.target_app.app_id).get().execute_query()
         self.assertIsNotNone(principal.resource_path)
 
     async def test5_add_password(self):
-        result = await self.__class__.target_object.add_password(
-            "Password friendly name"
-        ).execute_query()
+        result = await self.__class__.target_object.add_password("Password friendly name").execute_query()
         self.assertIsNotNone(result.value)
         self.__class__.password_creds = result.value
 
@@ -74,8 +66,6 @@ class TestServicePrincipal(GraphTestCase):
         await self.__class__.target_object.delete_object().execute_query()
 
     async def test8_list_deleted(self):
-        result = (
-            await self.__class__.client.directory.deleted_service_principals.get().execute_query()
-        )
+        result = await self.__class__.client.directory.deleted_service_principals.get().execute_query()
         self.assertIsNotNone(result.resource_path)
         self.assertGreater(len(result), 0)

@@ -41,16 +41,12 @@ class TestExcel(GraphTestCase):
         self.assertIsNotNone(workbook.resource_path)
 
     async def test2_create_workbook_table(self):
-        table = await self.__class__.target_item.workbook.tables.add(
-            "A10000:C10002", True
-        ).execute_query()
+        table = await self.__class__.target_item.workbook.tables.add("A10000:C10002", True).execute_query()
         self.assertIsNotNone(table.resource_path)
         self.__class__.table = table
 
     async def test3_list_workbook_tables(self):
-        tables = (
-            await self.__class__.target_item.workbook.tables.get().execute_query_retry()
-        )
+        tables = await self.__class__.target_item.workbook.tables.get().execute_query_retry()
         self.assertIsNotNone(tables.resource_path)
         self.assertGreater(len(tables), 0)
 
@@ -75,9 +71,7 @@ class TestExcel(GraphTestCase):
         self.assertIsNotNone(rows.resource_path)
 
     async def test9_create_table_rows(self):
-        row = await self.__class__.table.rows.add(
-            [["Val11", "Val12", "Val13", "Val14"]]
-        ).execute_query()
+        row = await self.__class__.table.rows.add([["Val11", "Val12", "Val13", "Val14"]]).execute_query()
         self.assertIsNotNone(row.resource_path)
         self.assertIsNotNone(row.index)
         self.assertIsNotNone(row.values)

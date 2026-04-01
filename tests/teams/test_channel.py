@@ -59,14 +59,10 @@ class TestGraphChannel(GraphTestCase):
     #    messages = team.channels.get_all_messages().execute_query()
     #    self.assertIsNotNone(messages.resource_path)
 
-    @requires_delegated_permission(
-        "Channel.Create", "Directory.ReadWrite.All", "Group.ReadWrite.All"
-    )
+    @requires_delegated_permission("Channel.Create", "Directory.ReadWrite.All", "Group.ReadWrite.All")
     async def test3_create_channel(self):
         channel_name = "Channel_" + uuid.uuid4().hex
-        new_channel = await self.__class__.target_team.channels.add(
-            display_name=channel_name
-        ).execute_query()
+        new_channel = await self.__class__.target_team.channels.add(display_name=channel_name).execute_query()
         self.assertIsNotNone(new_channel.resource_path)
         self.__class__.target_channel = new_channel
 
@@ -81,9 +77,7 @@ class TestGraphChannel(GraphTestCase):
     )
     async def test4_get_channel(self):
         channel = self.__class__.target_channel
-        existing_channel = (
-            await self.__class__.target_team.channels[channel.id].get().execute_query()
-        )
+        existing_channel = await self.__class__.target_team.channels[channel.id].get().execute_query()
         self.assertEqual(existing_channel.id, channel.id)
 
     # def test5_does_user_have_access(self):
@@ -91,13 +85,9 @@ class TestGraphChannel(GraphTestCase):
     #        user_principal_name=test_user_principal_name_alt).execute_query()
     #    self.assertIsNotNone(result.value)
 
-    @requires_delegated_permission(
-        "ChannelMember.Read.All", "ChannelMember.ReadWrite.All"
-    )
+    @requires_delegated_permission("ChannelMember.Read.All", "ChannelMember.ReadWrite.All")
     async def test6_list_allowed_members(self):
-        result = (
-            await self.__class__.target_channel.shared_with_teams.get().execute_query()
-        )
+        result = await self.__class__.target_channel.shared_with_teams.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     @requires_delegated_permission(
@@ -106,9 +96,7 @@ class TestGraphChannel(GraphTestCase):
         "ChannelSettings.ReadWrite.All",
     )
     async def test7_get_primary_channel(self):
-        primary_channel = (
-            await self.__class__.target_team.primary_channel.get().execute_query()
-        )
+        primary_channel = await self.__class__.target_team.primary_channel.get().execute_query()
         self.assertIsNotNone(primary_channel.resource_path)
 
     # def test8_get_channel_files_location(self):
@@ -129,27 +117,19 @@ class TestGraphChannel(GraphTestCase):
 
     @requires_delegated_permission("ChannelMessage.Send", "Group.ReadWrite.All")
     async def test_11_send_message(self):
-        message = await self.__class__.target_channel.messages.add(
-            body=ItemBody("Hello world!")
-        ).execute_query()
+        message = await self.__class__.target_channel.messages.add(body=ItemBody("Hello world!")).execute_query()
         self.assertIsNotNone(message.id)
         self.__class__.target_message = message
 
     @requires_delegated_permission("ChannelMessage.Send", "Group.ReadWrite.All")
     async def test_12_reply_to_message(self):
         item_body = ItemBody("Hello world back!")
-        reply = await self.__class__.target_message.replies.add(
-            body=item_body
-        ).execute_query()
+        reply = await self.__class__.target_message.replies.add(body=item_body).execute_query()
         self.assertIsNotNone(reply.id)
 
-    @requires_delegated_permission(
-        "Channel.Delete.All", "Directory.ReadWrite.All", "Group.ReadWrite.All"
-    )
+    @requires_delegated_permission("Channel.Delete.All", "Directory.ReadWrite.All", "Group.ReadWrite.All")
     async def test_13_delete_channel(self):
-        channels_before = (
-            await self.__class__.target_team.channels.get().execute_query()
-        )
+        channels_before = await self.__class__.target_team.channels.get().execute_query()
         await self.__class__.target_channel.delete_object().execute_query()
         channels_after = await self.__class__.target_team.channels.get().execute_query()
         time.sleep(5)

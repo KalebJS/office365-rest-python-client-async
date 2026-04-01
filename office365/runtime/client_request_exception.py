@@ -8,14 +8,8 @@ class ClientRequestException(Exception):
         self.response = response  # type: httpx.Response
         content_type = ""
         if self.response is not None:
-            content_type = (
-                self.response.headers.get("Content-Type", "").lower().split(";")[0]
-            )
-        if (
-            self.response is not None
-            and self.response.content
-            and content_type == "application/json"
-        ):
+            content_type = self.response.headers.get("Content-Type", "").lower().split(";")[0]
+        if self.response is not None and self.response.content and content_type == "application/json":
             self.payload = self.response.json()
         else:
             self.payload = None

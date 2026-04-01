@@ -21,9 +21,7 @@ class GraphRequest(ODataRequest):
         super(GraphRequest, self).__init__(V4JsonFormat(), http_client)
         self._version = version
         self._environment = environment
-        self._auth_context = AuthenticationContext(
-            environment=environment, tenant=tenant
-        )
+        self._auth_context = AuthenticationContext(environment=environment, tenant=tenant)
         self.beforeExecute += self.authenticate_request
 
     def with_access_token(self, token_callback):
@@ -90,6 +88,4 @@ class GraphRequest(ODataRequest):
     @property
     def service_root_url(self):
         # type: () -> str
-        return "{0}/{1}".format(
-            AzureEnvironment.get_graph_authority(self._environment), self._version
-        )
+        return "{0}/{1}".format(AzureEnvironment.get_graph_authority(self._environment), self._version)

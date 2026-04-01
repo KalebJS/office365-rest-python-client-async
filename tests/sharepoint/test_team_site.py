@@ -17,26 +17,18 @@ class TestTeamSite(TestCase):
         cls.client = client
 
     async def test1_can_user_create_group(self):
-        result = (
-            await self.client.group_site_manager.can_user_create_group().execute_query()
-        )
+        result = await self.client.group_site_manager.can_user_create_group().execute_query()
         self.assertIsNotNone(result.value)
 
     async def test2_create_site(self):
         site_name = "TeamSite{0}".format(uuid.uuid4().hex)
-        site = await self.client.create_team_site(
-            site_name, "Team Site", True
-        ).execute_query()
+        site = await self.client.create_team_site(site_name, "Team Site", True).execute_query()
         self.assertIsNotNone(site.url)
         self.__class__.target_site = site
 
     async def test3_get_site_status(self):
-        site = (
-            await self.__class__.target_site.get().select(["GroupId"]).execute_query()
-        )
-        result = await self.client.group_site_manager.get_status(
-            site.group_id
-        ).execute_query()
+        site = await self.__class__.target_site.get().select(["GroupId"]).execute_query()
+        result = await self.client.group_site_manager.get_status(site.group_id).execute_query()
         self.assertIsNotNone(result.value.SiteStatus)
         self.assertTrue(result.value.SiteStatus == SiteStatus.Ready)
 
@@ -54,25 +46,17 @@ class TestTeamSite(TestCase):
         await self.__class__.target_site.delete_object().execute_query()
 
     async def test7_get_current_user_joined_teams(self):
-        result = (
-            await self.client.group_site_manager.get_current_user_joined_teams().execute_query()
-        )
+        result = await self.client.group_site_manager.get_current_user_joined_teams().execute_query()
         self.assertIsNotNone(result.value)
 
     async def test8_get_group_creation_context(self):
-        result = (
-            await self.client.group_site_manager.get_group_creation_context().execute_query()
-        )
+        result = await self.client.group_site_manager.get_group_creation_context().execute_query()
         self.assertIsNotNone(result.value)
 
     async def test9_get_current_user_shared_channel_member_groups(self):
-        result = (
-            await self.client.group_site_manager.get_current_user_shared_channel_member_groups().execute_query()
-        )
+        result = await self.client.group_site_manager.get_current_user_shared_channel_member_groups().execute_query()
         self.assertIsNotNone(result.value)
 
     async def test_10_recent_and_joined_teams(self):
-        result = (
-            await self.client.group_site_manager.recent_and_joined_teams().execute_query()
-        )
+        result = await self.client.group_site_manager.recent_and_joined_teams().execute_query()
         self.assertIsNotNone(result.value)

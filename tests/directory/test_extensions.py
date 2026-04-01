@@ -28,18 +28,12 @@ class TestExtensions(GraphTestCase):
         asyncio.run(_async_teardown())
 
     async def test1_create_extension(self):
-        new_extension = await self.__class__.target_app.extension_properties.add(
-            name="extensionName"
-        ).execute_query()
+        new_extension = await self.__class__.target_app.extension_properties.add(name="extensionName").execute_query()
         self.assertIsNotNone(new_extension.resource_path)
         self.__class__.target_extension = new_extension
 
     async def test2_list_extensions(self):
-        extensions = (
-            await self.client.directory_objects.get_available_extension_properties(
-                False
-            ).execute_query()
-        )
+        extensions = await self.client.directory_objects.get_available_extension_properties(False).execute_query()
         self.assertIsNotNone(extensions.resource_path)
 
     async def test3_delete_extension(self):

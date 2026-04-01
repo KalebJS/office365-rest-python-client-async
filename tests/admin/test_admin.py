@@ -14,9 +14,7 @@ class TestAdmin(GraphTestCase):
         await settings.update().execute_query()
 
     async def test3_list_issues(self):
-        result = (
-            await self.client.admin.service_announcement.issues.get().execute_query()
-        )
+        result = await self.client.admin.service_announcement.issues.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     async def test4_list_microsoft365_apps(self):

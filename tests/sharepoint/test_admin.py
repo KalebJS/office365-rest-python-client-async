@@ -8,9 +8,7 @@ from tests import test_admin_credentials, test_admin_site_url
 class TestAdmin(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = ClientContext(test_admin_site_url).with_credentials(
-            test_admin_credentials
-        )
+        cls.client = ClientContext(test_admin_site_url).with_credentials(test_admin_credentials)
         cls.tenant = Tenant(cls.client)
 
     async def test1_get_analytics_usage(self):
@@ -30,9 +28,7 @@ class TestAdmin(TestCase):
     #    self.assertIsNotNone(result.value)
 
     async def test4_set_file_version_policy(self):
-        result = await self.tenant.set_file_version_policy(
-            True, 100, 10
-        ).execute_query()
+        result = await self.tenant.set_file_version_policy(True, 100, 10).execute_query()
         self.assertIsNotNone(result.resource_path)
 
     async def test5_get_file_version_policy(self):

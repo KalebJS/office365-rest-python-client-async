@@ -16,9 +16,7 @@ class TestTeamApps(GraphTestCase):
         team_name = "Team_" + uuid.uuid4().hex
 
         async def _async_setup():
-            new_team = (
-                await cls.client.teams.create(team_name).get().execute_query_retry()
-            )
+            new_team = await cls.client.teams.create(team_name).get().execute_query_retry()
             cls.target_team = new_team
 
         asyncio.run(_async_setup())

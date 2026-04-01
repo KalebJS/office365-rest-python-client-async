@@ -37,15 +37,11 @@ class TestSharePointSharing(TestCase):
         asyncio.run(_async_setup())
 
     async def test1_get_role_def(self):
-        role_def = await DocumentSharingManager.get_role_definition(
-            self.client, RoleType.Contributor
-        ).execute_query()
+        role_def = await DocumentSharingManager.get_role_definition(self.client, RoleType.Contributor).execute_query()
         self.assertTrue(role_def.name, "Full Control")
 
     async def test2_get_object_sharing_settings(self):
-        result = await Web.get_object_sharing_settings(
-            self.client, self.target_file_url, 0, True
-        ).execute_query()
+        result = await Web.get_object_sharing_settings(self.client, self.target_file_url, 0, True).execute_query()
         self.assertIsNotNone(result.web_url)
 
     async def test3_get_file_sharing_info(self):
@@ -56,9 +52,7 @@ class TestSharePointSharing(TestCase):
 
     async def test4_share_file(self):
         target_file_item = self.client.web.get_list_item("/SitePages/Home.aspx")
-        result = await target_file_item.share(
-            self.target_user.user_principal_name
-        ).execute_query()
+        result = await target_file_item.share(self.target_user.user_principal_name).execute_query()
         self.assertIsNone(result.error_message)
 
     async def test5_get_shared_with_me_items(self):
@@ -66,9 +60,7 @@ class TestSharePointSharing(TestCase):
             SharedWithMeItemCollection,
         )
 
-        result = await SharedWithMeItemCollection.get_shared_with_me_items(
-            self.client, 10
-        ).execute_query()
+        result = await SharedWithMeItemCollection.get_shared_with_me_items(self.client, 10).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test6_unshare_file(self):
@@ -78,13 +70,9 @@ class TestSharePointSharing(TestCase):
         self.assertIsNone(result.error_message)
 
     async def test7_share_web(self):
-        result = await self.client.web.share(
-            self.target_user.user_principal_name
-        ).execute_query()
+        result = await self.client.web.share(self.target_user.user_principal_name).execute_query()
         self.assertIsInstance(result, SharingResult)
-        self.assertEqual(
-            result.status_code, SharingOperationStatusCode.CompletedSuccessfully
-        )
+        self.assertEqual(result.status_code, SharingOperationStatusCode.CompletedSuccessfully)
         self.assertIsNone(result.error_message)
 
     async def test8_unshare_web(self):
@@ -92,21 +80,13 @@ class TestSharePointSharing(TestCase):
         self.assertIsInstance(result, SharingResult)
 
     async def test9_get_web_sharing_information(self):
-        result = await ObjectSharingInformation.get_web_sharing_information(
-            self.client
-        ).execute_query()
+        result = await ObjectSharingInformation.get_web_sharing_information(self.client).execute_query()
         self.assertIsNotNone(result.properties)
 
     async def test_10_get_site_sharing_report_capabilities(self):
-        result = await SiteSharingReportHelper.get_site_sharing_report_capabilities(
-            self.client
-        ).execute_query()
+        result = await SiteSharingReportHelper.get_site_sharing_report_capabilities(self.client).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test_11_get_get_list_sharing_settings(self):
-        result = await (
-            self.client.web.default_document_library()
-            .get_sharing_settings()
-            .execute_query()
-        )
+        result = await self.client.web.default_document_library().get_sharing_settings().execute_query()
         self.assertIsNotNone(result.list_id)

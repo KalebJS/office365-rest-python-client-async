@@ -7,9 +7,7 @@ https://learn.microsoft.com/en-us/graph/onenote-create-page
 from office365.graph_client import GraphClient
 from tests import test_client_id, test_password, test_tenant, test_username
 
-client = GraphClient(tenant=test_tenant).with_username_and_password(
-    test_client_id, test_username, test_password
-)
+client = GraphClient(tenant=test_tenant).with_username_and_password(test_client_id, test_username, test_password)
 
 files = {}
 with (
@@ -21,7 +19,5 @@ with (
     files["imageBlock1"] = img_f
     files["fileBlock1"] = pdf_f
     files["fileBlock2"] = word_f
-    page = client.me.onenote.pages.add(
-        presentation_file=f, attachment_files=files
-    ).execute_query()
+    page = client.me.onenote.pages.add(presentation_file=f, attachment_files=files).execute_query()
 print(page.links.oneNoteWebUrl)

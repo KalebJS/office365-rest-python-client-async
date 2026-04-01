@@ -29,15 +29,11 @@ class TestExcelWorksheets(GraphTestCase):
         asyncio.run(_async_teardown())
 
     async def test1_add_worksheet(self):
-        result = await self.__class__.excel_file.workbook.worksheets.add(
-            self.sheet_name
-        ).execute_query()
+        result = await self.__class__.excel_file.workbook.worksheets.add(self.sheet_name).execute_query()
         self.assertIsNotNone(result.resource_path)
 
     async def test2_list_worksheets(self):
-        result = (
-            await self.__class__.excel_file.workbook.worksheets.get().execute_query()
-        )
+        result = await self.__class__.excel_file.workbook.worksheets.get().execute_query()
         self.assertIsNotNone(result.resource_path)
         self.assertGreaterEqual(len(result), 1)
         self.__class__.worksheet = result[0]

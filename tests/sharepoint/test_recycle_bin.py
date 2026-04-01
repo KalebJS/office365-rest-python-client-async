@@ -34,11 +34,7 @@ class TestSharePointRecycleBin(SPTestCase):
 
     async def test2_find_removed_file(self):
         file_name = self.__class__.target_file.name
-        items = await (
-            self.client.site.recycle_bin.filter("LeafName eq '{0}'".format(file_name))
-            .get()
-            .execute_query()
-        )
+        items = await self.client.site.recycle_bin.filter("LeafName eq '{0}'".format(file_name)).get().execute_query()
         self.assertGreater(len(items), 0)
 
     async def test3_restore_file(self):

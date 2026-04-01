@@ -17,9 +17,7 @@ class TestSiteDesign(SPTestCase):
             site_script_ids=[UUID("07702c07-0485-426f-b710-4704241caad9")],
             web_template="64",
         )
-        result = await SiteScriptUtility.create_site_design(
-            self.client, info
-        ).execute_query()
+        result = await SiteScriptUtility.create_site_design(self.client, info).execute_query()
         self.assertIsNotNone(result.value)
         self.__class__.site_design_metadata = result.value
 
@@ -30,8 +28,6 @@ class TestSiteDesign(SPTestCase):
         self.__class__.site_design_count = len(result.value)
 
     async def test_3_delete(self):
-        await SiteScriptUtility.delete_site_design(
-            self.client, self.site_design_metadata.Id
-        ).execute_query()
+        await SiteScriptUtility.delete_site_design(self.client, self.site_design_metadata.Id).execute_query()
         result = await SiteScriptUtility.get_site_designs(self.client).execute_query()
         self.assertEqual(self.site_design_count - 1, len(result.value))

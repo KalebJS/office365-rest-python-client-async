@@ -180,9 +180,7 @@ class ClientContext(ClientRuntimeContext):
         :param str client_id: The OAuth client id of the calling application
         :param str client_secret: Secret string that the application uses to prove its identity when requesting a token
         """
-        self.authentication_context.with_credentials(
-            ClientCredential(client_id, client_secret)
-        )
+        self.authentication_context.with_credentials(ClientCredential(client_id, client_secret))
         return self
 
     def with_credentials(self, credentials):
@@ -315,9 +313,7 @@ class ClientContext(ClientRuntimeContext):
         :param str or office365.sharepoint.principal.user.User owner: Site owner
         """
         return_type = Site(self)
-        site_url = "{base_url}/sites/{alias}".format(
-            base_url=get_absolute_url(self.base_url), alias=alias
-        )
+        site_url = "{base_url}/sites/{alias}".format(base_url=get_absolute_url(self.base_url), alias=alias)
 
         def _after_site_create(result):
             # type: (ClientResult[SPSiteCreationResponse]) -> None
@@ -326,9 +322,7 @@ class ClientContext(ClientRuntimeContext):
             elif result.value.SiteStatus == SiteStatus.Ready:
                 return_type.set_property("__siteUrl", result.value.SiteUrl)
 
-        self.site_manager.create(title, site_url, owner).after_execute(
-            _after_site_create
-        )
+        self.site_manager.create(title, site_url, owner).after_execute(_after_site_create)
         return return_type
 
     def create_team_site(self, alias, title, is_public=True):
@@ -347,9 +341,7 @@ class ClientContext(ClientRuntimeContext):
             elif result.value.SiteStatus == SiteStatus.Ready:
                 return_type.set_property("__siteUrl", result.value.SiteUrl)
 
-        self.group_site_manager.create_group_ex(title, alias, is_public).after_execute(
-            _after_site_created
-        )
+        self.group_site_manager.create_group_ex(title, alias, is_public).after_execute(_after_site_created)
         return return_type
 
     def create_communication_site(self, alias, title):
@@ -360,9 +352,7 @@ class ClientContext(ClientRuntimeContext):
         :param str title: Site title
         """
         return_type = Site(self)
-        site_url = "{base_url}/sites/{alias}".format(
-            base_url=get_absolute_url(self.base_url), alias=alias
-        )
+        site_url = "{base_url}/sites/{alias}".format(base_url=get_absolute_url(self.base_url), alias=alias)
 
         def _after_site_created(result):
             # type: (ClientResult[CommunicationSiteCreationResponse]) -> None
@@ -371,9 +361,7 @@ class ClientContext(ClientRuntimeContext):
             elif result.value.SiteStatus == SiteStatus.Ready:
                 return_type.set_property("__siteUrl", result.value.SiteUrl)
 
-        self.site_pages.communication_site.create(title, site_url).after_execute(
-            _after_site_created
-        )
+        self.site_pages.communication_site.create(title, site_url).after_execute(_after_site_created)
         return return_type
 
     @property
@@ -708,9 +696,7 @@ class ClientContext(ClientRuntimeContext):
         )
         from office365.sharepoint.entity_collection import EntityCollection
 
-        return EntityCollection(
-            self, SPMachineLearningPublication, ResourcePath("publications")
-        )
+        return EntityCollection(self, SPMachineLearningPublication, ResourcePath("publications"))
 
     @property
     def server_settings(self):

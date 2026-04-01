@@ -16,11 +16,7 @@ class TestSynchronization(GraphTestCase):
         super(TestSynchronization, cls).setUpClass()
 
         async def _async_setup():
-            cls.target_sp = await (
-                cls.client.service_principals.get_by_app_id(test_client_id)
-                .get()
-                .execute_query()
-            )
+            cls.target_sp = await cls.client.service_principals.get_by_app_id(test_client_id).get().execute_query()
 
         asyncio.run(_async_setup())
 
@@ -28,9 +24,7 @@ class TestSynchronization(GraphTestCase):
     def tearDownClass(cls):
         pass
 
-    @requires_delegated_permission(
-        "Synchronization.Read.All", "Synchronization.ReadWrite.All"
-    )
+    @requires_delegated_permission("Synchronization.Read.All", "Synchronization.ReadWrite.All")
     async def test1_list_synchronization_jobs(self):
         result = await self.target_sp.synchronization.jobs.get().execute_query()
         self.assertIsNotNone(result.resource_path)

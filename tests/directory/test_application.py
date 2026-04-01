@@ -26,16 +26,12 @@ class TestApplication(GraphTestCase):
         self.assertIsNotNone(result.value)
 
     async def test4_add_password(self):
-        result = await self.__class__.target_app.add_password(
-            "New password"
-        ).execute_query()
+        result = await self.__class__.target_app.add_password("New password").execute_query()
         self.assertIsNotNone(result.value.secretText)
         self.__class__.target_password = result.value
 
     async def test5_remove_password(self):
-        await self.__class__.target_app.remove_password(
-            self.__class__.target_password.keyId
-        ).execute_query()
+        await self.__class__.target_app.remove_password(self.__class__.target_password.keyId).execute_query()
 
     async def test6_delete_app(self):
         app_to_del = self.__class__.target_app

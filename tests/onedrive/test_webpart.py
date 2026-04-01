@@ -17,9 +17,7 @@ class TestWebPart(GraphTestCase):
         page_name = create_unique_name("Test Page")
 
         async def _async_setup():
-            cls.target_page = (
-                await test_site.pages.add(page_name).checkin("").execute_query()
-            )
+            cls.target_page = await test_site.pages.add(page_name).checkin("").execute_query()
 
         asyncio.run(_async_setup())
 

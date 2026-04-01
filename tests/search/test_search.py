@@ -4,9 +4,7 @@ from tests.graph_case import GraphTestCase
 
 class TestSearchOneDrive(GraphTestCase):
     async def test1_search_files(self):
-        result = await self.client.search.query_drive_items(
-            "Guide.docx"
-        ).execute_query()
+        result = await self.client.search.query_drive_items("Guide.docx").execute_query()
         self.assertIsNotNone(result.value)
 
     async def test2_search_messages(self):

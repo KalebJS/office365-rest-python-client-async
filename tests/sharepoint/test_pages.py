@@ -12,17 +12,13 @@ class TestPages(SPTestCase):
         super(TestPages, cls).setUpClass()
 
     async def test1_ensure_site_pages_library(self):
-        pages_list = (
-            await self.client.web.lists.ensure_site_pages_library().execute_query()
-        )
+        pages_list = await self.client.web.lists.ensure_site_pages_library().execute_query()
         self.assertIsNotNone(pages_list.resource_path)
         self.__class__.pages_list = pages_list
 
     async def test2_create_wiki_page(self):
         page_name = "WelcomeWikiPage123.aspx"
-        file = await self.__class__.pages_list.create_wiki_page(
-            page_name, "Wiki content"
-        ).execute_query()
+        file = await self.__class__.pages_list.create_wiki_page(page_name, "Wiki content").execute_query()
         self.assertIsNotNone(file.resource_path)
         self.__class__.target_file = file
 

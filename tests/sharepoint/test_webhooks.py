@@ -20,9 +20,7 @@ class TestSPWebHooks(SPTestCase):
         pass
 
     async def test1_create_subscription(self):
-        subscription = await self.target_list.subscriptions.add(
-            self.push_service_url
-        ).execute_query()
+        subscription = await self.target_list.subscriptions.add(self.push_service_url).execute_query()
         self.assertIsNotNone(subscription.notification_url)
         self.__class__.target_subscription = subscription
 

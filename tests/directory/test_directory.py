@@ -8,9 +8,7 @@ class TestDirectory(GraphTestCase):
     administrative_unit = None  # type: AdministrativeUnit
 
     async def test2_get_deleted_groups(self):
-        deleted_groups = (
-            await self.client.directory.deleted_groups.get().execute_query()
-        )
+        deleted_groups = await self.client.directory.deleted_groups.get().execute_query()
         self.assertEqual(deleted_groups.resource_path.segment, "microsoft.graph.group")
 
     async def test3_get_deleted_users(self):
@@ -18,12 +16,8 @@ class TestDirectory(GraphTestCase):
         self.assertEqual(deleted_users.resource_path.segment, "microsoft.graph.user")
 
     async def test4_get_deleted_applications(self):
-        deleted_apps = (
-            await self.client.directory.deleted_applications.get().execute_query()
-        )
-        self.assertEqual(
-            deleted_apps.resource_path.segment, "microsoft.graph.application"
-        )
+        deleted_apps = await self.client.directory.deleted_applications.get().execute_query()
+        self.assertEqual(deleted_apps.resource_path.segment, "microsoft.graph.application")
 
     async def test5_get_member_objects(self):
         result = await self.client.me.get_member_objects().execute_query()
@@ -61,7 +55,5 @@ class TestDirectory(GraphTestCase):
         self.assertIsNotNone(result.resource_path)
 
     async def test_12_list_device_local_credentials(self):
-        result = (
-            await self.client.directory.device_local_credentials.get().execute_query()
-        )
+        result = await self.client.directory.device_local_credentials.get().execute_query()
         self.assertIsNotNone(result.resource_path)

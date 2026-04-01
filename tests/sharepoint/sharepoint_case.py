@@ -14,20 +14,10 @@ class SPTestCase(IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.client = ClientContext(test_team_site_url).with_credentials(
-            test_client_credentials
-        )
+        cls.client = ClientContext(test_team_site_url).with_credentials(test_client_credentials)
 
     @staticmethod
     async def ensure_list(web, list_properties):
         # type: (Web, ListCreationInformation) -> List
-        lists = await (
-            web.lists.filter("Title eq '{0}'".format(list_properties.Title))
-            .get()
-            .execute_query()
-        )
-        return (
-            lists[0]
-            if len(lists) == 1
-            else await web.lists.add(list_properties).execute_query()
-        )
+        lists = await web.lists.filter("Title eq '{0}'".format(list_properties.Title)).get().execute_query()
+        return lists[0] if len(lists) == 1 else await web.lists.add(list_properties).execute_query()

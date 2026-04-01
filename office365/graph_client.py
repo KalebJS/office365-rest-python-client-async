@@ -294,9 +294,7 @@ class GraphClient(ClientRuntimeContext):
     @property
     def group_setting_templates(self):
         """Group setting templates represent system-defined settings available to the tenant."""
-        return EntityCollection(
-            self, GroupSettingTemplate, ResourcePath("groupSettingTemplates")
-        )
+        return EntityCollection(self, GroupSettingTemplate, ResourcePath("groupSettingTemplates"))
 
     @property
     def contacts(self):
@@ -318,16 +316,12 @@ class GraphClient(ClientRuntimeContext):
         """Represents a directory role templates in the directory"""
         from office365.directory.rolemanagement.template import DirectoryRoleTemplate
 
-        return EntityCollection(
-            self, DirectoryRoleTemplate, ResourcePath("directoryRoleTemplates")
-        )
+        return EntityCollection(self, DirectoryRoleTemplate, ResourcePath("directoryRoleTemplates"))
 
     @property
     def identity_providers(self):
         """"""
-        return EntityCollection(
-            self, IdentityProvider, ResourcePath("identityProviders")
-        )
+        return EntityCollection(self, IdentityProvider, ResourcePath("identityProviders"))
 
     @property
     def identity(self):
@@ -336,9 +330,7 @@ class GraphClient(ClientRuntimeContext):
     @property
     def application_templates(self):
         """Get the list of application templates in this organization."""
-        return EntityCollection(
-            self, ApplicationTemplate, ResourcePath("applicationTemplates")
-        )
+        return EntityCollection(self, ApplicationTemplate, ResourcePath("applicationTemplates"))
 
     @property
     def authentication_method_configurations(self):
@@ -381,9 +373,7 @@ class GraphClient(ClientRuntimeContext):
     @property
     def group_lifecycle_policies(self):
         """A collection of lifecycle policies for a Microsoft 365 groups."""
-        return EntityCollection(
-            self, GroupLifecyclePolicy, ResourcePath("groupLifecyclePolicies")
-        )
+        return EntityCollection(self, GroupLifecyclePolicy, ResourcePath("groupLifecyclePolicies"))
 
     @property
     def group_settings(self):
@@ -449,9 +439,7 @@ class GraphClient(ClientRuntimeContext):
     @property
     def oauth2_permission_grants(self):
         """Permission grants container"""
-        return DeltaCollection(
-            self, OAuth2PermissionGrant, ResourcePath("oauth2PermissionGrants")
-        )
+        return DeltaCollection(self, OAuth2PermissionGrant, ResourcePath("oauth2PermissionGrants"))
 
     @property
     def room_lists(self):
@@ -492,9 +480,7 @@ class GraphClient(ClientRuntimeContext):
     @property
     def permission_grants(self):
         """List all resource-specific permission grants"""
-        return EntityCollection(
-            self, ResourceSpecificPermissionGrant, ResourcePath("permissionGrants")
-        )
+        return EntityCollection(self, ResourceSpecificPermissionGrant, ResourcePath("permissionGrants"))
 
     @property
     def print(self):

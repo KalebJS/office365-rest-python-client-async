@@ -26,19 +26,13 @@ class TestSPTaxonomy(SPTestCase):
         self.assertIsNotNone(term_store.name)
 
     async def test2_get_term_groups(self):
-        term_group = await (
-            self.client.taxonomy.term_store.term_groups.get_by_name("Geography")
-            .get()
-            .execute_query()
-        )
+        term_group = await self.client.taxonomy.term_store.term_groups.get_by_name("Geography").get().execute_query()
         self.assertIsNotNone(term_group.resource_path)
         self.assertIsInstance(term_group, TermGroup)
         self.__class__.target_term_group = term_group
 
     async def test3_get_term_sets(self):
-        term_sets = (
-            await self.__class__.target_term_group.term_sets.get().execute_query()
-        )
+        term_sets = await self.__class__.target_term_group.term_sets.get().execute_query()
         self.assertGreater(len(term_sets), 0)
         self.assertIsInstance(term_sets[0], TermSet)
         self.__class__.target_term_set = term_sets[0]
@@ -49,9 +43,7 @@ class TestSPTaxonomy(SPTestCase):
         self.assertIsInstance(terms[0], Term)
 
     async def test5_search_term(self):
-        result = await self.client.taxonomy.term_store.search_term(
-            "Sweden"
-        ).execute_query()
+        result = await self.client.taxonomy.term_store.search_term("Sweden").execute_query()
         self.assertIsNotNone(result.resource_path)
 
     async def test6_create_list_tax_field(self):

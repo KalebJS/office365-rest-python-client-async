@@ -19,9 +19,7 @@ class TestClientSideComponent(SPTestCase):
         self.assertIsNotNone(result.value)
 
     async def test3_get_available_full_page_applications(self):
-        result = await SitePageService.get_available_full_page_applications(
-            self.client
-        ).execute_query()
+        result = await SitePageService.get_available_full_page_applications(self.client).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test4_list_client_web_parts(self):

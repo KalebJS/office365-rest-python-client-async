@@ -30,11 +30,7 @@ class TestGraphUser(GraphTestCase):
         self.assertIsNotNone(result.value)
 
     async def test4_get_user_licences(self):
-        user = (
-            await self.__class__.test_user.select(["assignedLicenses"])
-            .get()
-            .execute_query()
-        )
+        user = await self.__class__.test_user.select(["assignedLicenses"]).get().execute_query()
         self.assertIsInstance(user.assigned_licenses, ClientValueCollection)
 
     async def test5_list_subscribed_skus(self):
@@ -45,9 +41,7 @@ class TestGraphUser(GraphTestCase):
         pass
 
     async def test7_list_app_role_assignments(self):
-        result = (
-            await self.__class__.test_user.app_role_assignments.get().execute_query()
-        )
+        result = await self.__class__.test_user.app_role_assignments.get().execute_query()
         self.assertIsNotNone(result.resource_path)
 
     async def test8_update_user(self):
@@ -56,11 +50,7 @@ class TestGraphUser(GraphTestCase):
         prop_val = create_unique_name("city_")
         await user_to_update.set_property(prop_name, prop_val).update().execute_query()
 
-        result = await (
-            self.client.users.filter("{0} eq '{1}'".format(prop_name, prop_val))
-            .get()
-            .execute_query()
-        )
+        result = await self.client.users.filter("{0} eq '{1}'".format(prop_name, prop_val)).get().execute_query()
         self.assertEqual(1, len(result))
 
     # def test9_check_member_groups(self):

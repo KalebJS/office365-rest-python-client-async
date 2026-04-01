@@ -21,22 +21,16 @@ class TestSearch(TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestSearch, cls).setUpClass()
-        cls.client = ClientContext(test_site_url).with_credentials(
-            test_user_credentials
-        )
+        cls.client = ClientContext(test_site_url).with_credentials(test_user_credentials)
 
     async def test1_export_search_settings(self):
         current_user = self.client.web.current_user
         export_start_data = datetime.today() - timedelta(days=100)
-        result = await self.client.search.export(
-            current_user, export_start_data
-        ).execute_query()
+        result = await self.client.search.export(current_user, export_start_data).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test2_export_popular_tenant_queries(self):
-        result = await self.client.search.export_popular_tenant_queries(
-            10
-        ).execute_query()
+        result = await self.client.search.export_popular_tenant_queries(10).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test3_get_search_center_url(self):
@@ -44,9 +38,7 @@ class TestSearch(TestCase):
         self.assertIsNotNone(result.value)
 
     async def test4_search_post_query(self):
-        result = await self.client.search.post_query(
-            query_text="filename:guide.docx"
-        ).execute_query()
+        result = await self.client.search.post_query(query_text="filename:guide.docx").execute_query()
         self.assertIsInstance(result.value, SearchResult)
         self.assertIsInstance(result.value.PrimaryQueryResult, QueryResult)
 
@@ -79,15 +71,11 @@ class TestSearch(TestCase):
     #    self.assertIsNotNone(result.value)
 
     async def test_10_get_query_configuration(self):
-        result = (
-            await self.client.search_setting.get_query_configuration().execute_query()
-        )
+        result = await self.client.search_setting.get_query_configuration().execute_query()
         self.assertIsNotNone(result.value)
 
     async def test_11_get_promoted_result_query_rules(self):
-        result = (
-            await self.client.search_setting.get_promoted_result_query_rules().execute_query()
-        )
+        result = await self.client.search_setting.get_promoted_result_query_rules().execute_query()
         self.assertIsNotNone(result.value)
 
     # def test7_get_crawled_urls(self):

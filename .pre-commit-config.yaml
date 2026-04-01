@@ -15,15 +15,10 @@ repos:
     language: system
     name: ruff-check
     pass_filenames: false
-  - entry: uv run black .
-    id: black
+  - entry: uv run ruff format .
+    id: ruff-format
     language: system
-    name: black
-    pass_filenames: false
-  - entry: uv run pylint office365
-    id: pylint
-    language: system
-    name: pylint
+    name: ruff-format
     pass_filenames: false
   repo: local
 - hooks:

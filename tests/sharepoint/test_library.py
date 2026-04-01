@@ -11,9 +11,7 @@ class TestSPLibrary(SPTestCase):
         pass
 
     async def test1_get_default_library(self):
-        default_lib = (
-            await self.client.web.default_document_library().get().execute_query()
-        )
+        default_lib = await self.client.web.default_document_library().get().execute_query()
         self.assertIsNotNone(default_lib.id)
 
     # def test2_reset_doc_id(self):

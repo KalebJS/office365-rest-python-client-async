@@ -8,9 +8,7 @@ class TestGraphMail(GraphTestCase):
 
     @requires_delegated_permission("Mail.ReadWrite")
     async def test1_create_mail_folder(self):
-        result = await self.client.me.mail_folders.add(
-            "ClutterAlt", True
-        ).execute_query()
+        result = await self.client.me.mail_folders.add("ClutterAlt", True).execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.target_mail_folder = result
 

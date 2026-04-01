@@ -20,16 +20,12 @@ class TestMultilingual(SPTestCase):
 
     async def test2_create_page(self):
         page_title = "My Page"
-        site_page = await self.client.site_pages.create_page(
-            page_title, language="en-us"
-        ).execute_query()
+        site_page = await self.client.site_pages.create_page(page_title, language="en-us").execute_query()
         self.assertIsNotNone(site_page.resource_path)
         self.__class__.site_page = site_page
 
     async def test3_get_page_language(self):
-        site_page = (
-            await self.__class__.site_page.get().select(["Language"]).execute_query()
-        )
+        site_page = await self.__class__.site_page.get().select(["Language"]).execute_query()
         self.assertIsNotNone(site_page.language)
 
     # The Machine Translations Service API will no longer be supported as of the end of July 2022

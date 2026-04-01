@@ -47,11 +47,7 @@ class ClientObject(object):
     def clear_state(self):
         # type: () -> Self
         """Resets client object's state."""
-        self._properties = {
-            k: v
-            for k, v in self._properties.items()
-            if k not in self._properties_to_persist
-        }
+        self._properties = {k: v for k, v in self._properties.items() if k not in self._properties_to_persist}
         self._properties_to_persist = []
         self._query_options = QueryOptions()
         return self
@@ -166,24 +162,17 @@ class ClientObject(object):
         typed_value = self.get_property(name)
         if isinstance(typed_value, (ClientObject, ClientValue)):
             if isinstance(value, list):
-                [
-                    typed_value.set_property(i, v, persist_changes)
-                    for i, v in enumerate(value)
-                ]
+                [typed_value.set_property(i, v, persist_changes) for i, v in enumerate(value)]
                 self._properties[name] = typed_value
             elif isinstance(value, dict):
-                [
-                    typed_value.set_property(k, v, persist_changes)
-                    for k, v in value.items()
-                ]
+                [typed_value.set_property(k, v, persist_changes) for k, v in value.items()]
                 self._properties[name] = typed_value
             else:
                 self._properties[name] = value
+        elif isinstance(typed_value, datetime.datetime):
+            self._properties[name] = ODataType.try_parse_datetime(value)
         else:
-            if isinstance(typed_value, datetime.datetime):
-                self._properties[name] = ODataType.try_parse_datetime(value)
-            else:
-                self._properties[name] = value
+            self._properties[name] = value
         return self
 
     def ensure_property(self, name, action, *args, **kwargs):
@@ -250,11 +239,7 @@ class ClientObject(object):
 
     @property
     def persistable_properties(self):
-        return {
-            k: self.get_property(k)
-            for k in self._properties_to_persist
-            if k in self._properties
-        }
+        return {k: self.get_property(k) for k in self._properties_to_persist if k in self._properties}
 
     @property
     def parent_collection(self):
@@ -269,14 +254,9 @@ class ClientObject(object):
             include_control_info = False
         else:
             ser_prop_names = [n for n in self._properties_to_persist]
-            include_control_info = (
-                self.entity_type_name is not None
-                and json_format.include_control_information
-            )
+            include_control_info = self.entity_type_name is not None and json_format.include_control_information
 
-        json = {
-            k: self.get_property(k) for k in self._properties if k in ser_prop_names
-        }
+        json = {k: self.get_property(k) for k in self._properties if k in ser_prop_names}
         for k, v in json.items():
             if isinstance(v, (ClientObject, ClientValue)):
                 json[k] = v.to_json(json_format)

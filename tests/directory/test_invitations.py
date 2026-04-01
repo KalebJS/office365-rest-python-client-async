@@ -8,13 +8,9 @@ from tests.decorators import requires_app_permission
 class TestInvitations(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = GraphClient(tenant=test_tenant).with_client_secret(
-            test_client_id, test_client_secret
-        )
+        cls.client = GraphClient(tenant=test_tenant).with_client_secret(test_client_id, test_client_secret)
 
-    @requires_app_permission(
-        "User.Invite.All", "Directory.ReadWrite.All", "User.ReadWrite.All"
-    )
+    @requires_app_permission("User.Invite.All", "Directory.ReadWrite.All", "User.ReadWrite.All")
     async def test1_create_invitation(self):
         invitation = await self.client.invitations.create(
             "admin@fabrikam.com", "https://myapp.contoso.com"

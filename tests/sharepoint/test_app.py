@@ -16,9 +16,7 @@ class TestApp(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.admin_client = ClientContext(test_admin_site_url).with_credentials(
-            test_admin_credentials
-        )
+        cls.admin_client = ClientContext(test_admin_site_url).with_credentials(test_admin_credentials)
         cls.tenant_app_catalog = cls.admin_client.web.tenant_app_catalog
 
     async def test_1_load_tenant_app_catalog(self):
@@ -26,28 +24,20 @@ class TestApp(TestCase):
         self.assertIsNotNone(result.resource_path)
 
     async def test_2_get_corporate_catalog_site(self):
-        site = (
-            await self.admin_client.tenant.get_corporate_catalog_site().execute_query()
-        )
+        site = await self.admin_client.tenant.get_corporate_catalog_site().execute_query()
         self.assertIsNotNone(site.resource_path)
 
     async def test_3_add_app(self):
         app_path = "../../examples/sharepoint/alm/react-banner.sppkg"
-        app_file = await self.__class__.tenant_app_catalog.app_from_path(
-            app_path, True
-        ).execute_query()
+        app_file = await self.__class__.tenant_app_catalog.app_from_path(app_path, True).execute_query()
         self.assertIsNotNone(app_file.resource_path)
 
     async def test_4_list_apps(self):
-        apps = (
-            await self.__class__.tenant_app_catalog.available_apps.get().execute_query()
-        )
+        apps = await self.__class__.tenant_app_catalog.available_apps.get().execute_query()
         self.assertIsNotNone(apps.resource_path)
 
     async def test_5_get_app(self):
-        app = await self.__class__.tenant_app_catalog.available_apps.get_by_title(
-            "Starter Kit - Banner"
-        ).execute_query()
+        app = await self.__class__.tenant_app_catalog.available_apps.get_by_title("Starter Kit - Banner").execute_query()
         self.assertIsNotNone(app.resource_path)
         self.__class__.app = app
 
@@ -55,15 +45,11 @@ class TestApp(TestCase):
     #    self.__class__.app.remove().execute_query()
 
     async def test_5_list_site_collection_app_catalogs_sites(self):
-        sites = (
-            await self.tenant_app_catalog.site_collection_app_catalogs_sites.get().execute_query()
-        )
+        sites = await self.tenant_app_catalog.site_collection_app_catalogs_sites.get().execute_query()
         self.assertIsNotNone(sites.resource_path)
 
     async def test_6_get_site_collection_app_catalog(self):
-        site_client = ClientContext(test_team_site_url).with_credentials(
-            test_admin_credentials
-        )
+        site_client = ClientContext(test_team_site_url).with_credentials(test_admin_credentials)
         result = await site_client.web.site_collection_app_catalog.get().execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.site_col_app_catalog = result

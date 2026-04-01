@@ -13,9 +13,7 @@ class TestWebPart(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.client = ClientContext(test_site_url).with_credentials(
-            test_client_credentials
-        )
+        cls.client = ClientContext(test_site_url).with_credentials(test_client_credentials)
         page_url = "/SitePages/Home.aspx"
         cls.file = cls.client.web.get_file_by_server_relative_url(page_url)
 
@@ -27,9 +25,7 @@ class TestWebPart(TestCase):
     @classmethod
     def tearDownClass(cls):
         async def _async_teardown():
-            await cls.file.checkin(
-                "Added web part", CheckinType.MajorCheckIn
-            ).execute_query()
+            await cls.file.checkin("Added web part", CheckinType.MajorCheckIn).execute_query()
 
         asyncio.run(_async_teardown())
 
@@ -43,11 +39,7 @@ class TestWebPart(TestCase):
     <HeaderTitle xmlns="http://schemas.microsoft.com/WebPart/v2/TitleBar">Home</HeaderTitle>
 </WebPart>"""
 
-        result = await (
-            self.file.get_limited_webpart_manager()
-            .import_web_part(xml_content)
-            .execute_query()
-        )
+        result = await self.file.get_limited_webpart_manager().import_web_part(xml_content).execute_query()
         self.assertIsNotNone(result.resource_path)
         self.__class__.target_web_part = result
 
@@ -61,12 +53,7 @@ class TestWebPart(TestCase):
     #   web_part.save_web_part_changes().execute_query()
 
     async def test5_list_web_parts(self):
-        web_parts = await (
-            self.file.get_limited_webpart_manager()
-            .web_parts.expand(["WebPart"])
-            .get()
-            .execute_query()
-        )
+        web_parts = await self.file.get_limited_webpart_manager().web_parts.expand(["WebPart"]).get().execute_query()
         self.assertIsNotNone(web_parts.resource_path)
         self.assertGreater(len(web_parts), 0)
 

@@ -20,15 +20,11 @@ class TestList(GraphTestCase):
         pass
 
     async def test1_create_list(self):
-        result = await self.client.sites.root.lists.add(
-            self.list_name, "documentLibrary"
-        ).execute_query()
+        result = await self.client.sites.root.lists.add(self.list_name, "documentLibrary").execute_query()
         self.__class__.target_list = result
 
     async def test2_get_list(self):
-        target_list = (
-            await self.client.sites.root.lists[self.list_name].get().execute_query()
-        )
+        target_list = await self.client.sites.root.lists[self.list_name].get().execute_query()
         self.assertIsNotNone(target_list.resource_path)
 
     async def test3_get_list_items(self):
@@ -41,9 +37,7 @@ class TestList(GraphTestCase):
 
     async def test5_create_list_column(self):
         column_name = create_unique_name("Text")
-        text_column = await self.target_list.columns.add_text(
-            column_name
-        ).execute_query()
+        text_column = await self.target_list.columns.add_text(column_name).execute_query()
         self.assertIsNotNone(text_column.resource_path)
         self.__class__.target_column = text_column
 
@@ -55,9 +49,5 @@ class TestList(GraphTestCase):
         await self.__class__.target_list.delete_object().execute_query()
 
     async def test8_get_pages_list(self):
-        result = (
-            await self.client.sites.root.lists.get_by_name("Site Pages")
-            .get()
-            .execute_query()
-        )
+        result = await self.client.sites.root.lists.get_by_name("Site Pages").get().execute_query()
         self.assertIsNotNone(result.resource_path)

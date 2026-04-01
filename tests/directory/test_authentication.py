@@ -18,7 +18,5 @@ class TestAuthentication(GraphTestCase):
         "UserAuthenticationMethod.ReadWrite.All",
     )
     async def test3_list_password_methods(self):
-        result = (
-            await self.client.me.authentication.password_methods.get().execute_query()
-        )
+        result = await self.client.me.authentication.password_methods.get().execute_query()
         self.assertIsNotNone(result.resource_path)

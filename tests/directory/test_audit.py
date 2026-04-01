@@ -8,9 +8,7 @@ from tests.decorators import requires_app_permission
 class TestAudit(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = GraphClient(tenant=test_tenant).with_client_secret(
-            test_client_id, test_client_secret
-        )
+        cls.client = GraphClient(tenant=test_tenant).with_client_secret(test_client_id, test_client_secret)
 
     @requires_app_permission("AuditLog.Read.All")
     async def test1_list_signins(self):
@@ -19,9 +17,7 @@ class TestAudit(TestCase):
 
     @requires_app_permission("AuditLog.Read.All", "Directory.Read.All")
     async def test2_list_directory_audits(self):
-        col = (
-            await self.client.audit_logs.directory_audits.top(10).get().execute_query()
-        )
+        col = await self.client.audit_logs.directory_audits.top(10).get().execute_query()
         self.assertIsNotNone(col.resource_path)
 
     @requires_app_permission("AuditLog.Read.All", "Directory.Read.All")

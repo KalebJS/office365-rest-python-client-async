@@ -7,9 +7,7 @@ from tests import test_client_id, test_client_secret, test_tenant
 class TestOrganization(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = GraphClient(tenant=test_tenant).with_client_secret(
-            test_client_id, test_client_secret
-        )
+        cls.client = GraphClient(tenant=test_tenant).with_client_secret(test_client_id, test_client_secret)
 
     async def test1_list(self):
         org = await self.client.organization.get().execute_query()

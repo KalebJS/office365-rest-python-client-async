@@ -24,15 +24,11 @@ class TestPublishing(SPTestCase):
     #    self.assertIsInstance(time_zone, PrimaryCityTime)
 
     async def test4_compute_file_name(self):
-        result = await SitePageService.compute_file_name(
-            self.client, "Test page"
-        ).execute_query()
+        result = await SitePageService.compute_file_name(self.client, "Test page").execute_query()
         self.assertIsNotNone(result.value)
 
     async def test5_file_picker_tab_options(self):
-        result = await SitePageService.file_picker_tab_options(
-            self.client
-        ).execute_query()
+        result = await SitePageService.file_picker_tab_options(self.client).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test6_org_assets(self):
@@ -44,11 +40,7 @@ class TestPublishing(SPTestCase):
         self.assertIsNotNone(discoverer.video_portal_url)
 
     async def test8_get_page_by_name(self):
-        page = (
-            await self.client.site_pages.pages.get_by_name("Home.aspx")
-            .get()
-            .execute_query()
-        )
+        page = await self.client.site_pages.pages.get_by_name("Home.aspx").get().execute_query()
         self.assertIsNotNone(page.resource_path)
 
     async def test9_can_create_page(self):
@@ -56,15 +48,11 @@ class TestPublishing(SPTestCase):
         self.assertIsNotNone(result.value)
 
     async def test_10_get_current_user_memberships(self):
-        result = await SitePageService.get_current_user_memberships(
-            self.client
-        ).execute_query()
+        result = await SitePageService.get_current_user_memberships(self.client).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test_11_get_page_diagnostics(self):
-        result = await self.client.page_diagnostics.by_page(
-            "/sites/team/SitePages/Home.aspx"
-        ).execute_query()
+        result = await self.client.page_diagnostics.by_page("/sites/team/SitePages/Home.aspx").execute_query()
         self.assertIsNotNone(result.value)
 
     async def test_12_checkout_page(self):

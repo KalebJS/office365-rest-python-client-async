@@ -15,7 +15,5 @@ class TestChange(SPTestCase):
     async def test_3_get_list_item_changes_since_token(self):
         target_list = self.client.site.root_web.default_document_library()
         query = ChangeLogItemQuery(row_limit=100)
-        result = await target_list.get_list_item_changes_since_token(
-            query
-        ).execute_query()
+        result = await target_list.get_list_item_changes_since_token(query).execute_query()
         self.assertIsNotNone(result.value)

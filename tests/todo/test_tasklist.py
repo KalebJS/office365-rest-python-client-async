@@ -20,9 +20,7 @@ class TestTaskList(GraphTestCase):
 
     @requires_delegated_permission("Tasks.ReadWrite")
     async def test3_create_task(self):
-        task = await self.__class__.task_list.tasks.add(
-            title="A new task"
-        ).execute_query()
+        task = await self.__class__.task_list.tasks.add(title="A new task").execute_query()
         self.assertIsNotNone(task.resource_path)
 
     @requires_delegated_permission("Tasks.Read", "Tasks.ReadWrite")

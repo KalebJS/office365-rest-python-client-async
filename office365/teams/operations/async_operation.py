@@ -49,9 +49,8 @@ class TeamsAsyncOperation(Entity):
                 if return_type.status != status_type:
                     await asyncio.sleep(polling_interval_secs)
                     _poll_for_status(polling_number + 1)
-                else:
-                    if callable(success_callback):
-                        success_callback(return_type)
+                elif callable(success_callback):
+                    success_callback(return_type)
 
             self.get().after_execute(_verify_status, execute_first=True)
 

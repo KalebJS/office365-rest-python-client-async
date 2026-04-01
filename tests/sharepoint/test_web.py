@@ -27,9 +27,7 @@ class TestSharePointWeb(SPTestCase):
 
     async def test2_get_web_from_page_url(self):
         page_url = "{site_url}/SitePages/Home.aspx".format(site_url=test_site_url)
-        result = await Web.get_web_url_from_page_url(
-            self.client, page_url
-        ).execute_query()
+        result = await Web.get_web_url_from_page_url(self.client, page_url).execute_query()
         self.assertIsNotNone(result.value)
 
     async def test3_get_list_item_by_url(self):
@@ -54,22 +52,14 @@ class TestSharePointWeb(SPTestCase):
         creation_info = WebCreationInformation()
         creation_info.Url = target_web_name
         creation_info.Title = target_web_name
-        self.__class__.target_web = await self.client.web.webs.add(
-            creation_info
-        ).execute_query()
+        self.__class__.target_web = await self.client.web.webs.add(creation_info).execute_query()
 
-        results = await (
-            self.client.web.webs.filter("Title eq '{0}'".format(target_web_name))
-            .get()
-            .execute_query()
-        )
+        results = await self.client.web.webs.filter("Title eq '{0}'".format(target_web_name)).get().execute_query()
         self.assertEqual(len(results), 1)
         self.assertIsNotNone(results[0].resource_path)
 
     async def test7_get_sub_web(self):
-        sub_webs = await self.client.web.get_sub_webs_filtered_for_current_user(
-            SubwebQuery()
-        ).execute_query()
+        sub_webs = await self.client.web.get_sub_webs_filtered_for_current_user(SubwebQuery()).execute_query()
         self.assertGreater(len(sub_webs), 0)
 
     async def test8_if_web_updated(self):
@@ -86,11 +76,7 @@ class TestSharePointWeb(SPTestCase):
         title = self.__class__.target_web.properties["Title"]
         await self.__class__.target_web.delete_object().execute_query()
 
-        results = await (
-            self.client.web.webs.filter("Title eq '{0}'".format(title))
-            .get()
-            .execute_query()
-        )
+        results = await self.client.web.webs.filter("Title eq '{0}'".format(title)).get().execute_query()
         self.assertEqual(len(results), 0)
 
     async def test_10_enum_all_webs(self):
@@ -110,31 +96,19 @@ class TestSharePointWeb(SPTestCase):
         self.assertGreater(len(result.value.permission_levels), 0)
 
     async def test_13_get_user_by_id(self):
-        result_user = await (
-            self.client.web.get_user_by_id(self.__class__.target_user.id)
-            .get()
-            .execute_query()
-        )
+        result_user = await self.client.web.get_user_by_id(self.__class__.target_user.id).get().execute_query()
         self.assertEqual(result_user.login_name, self.__class__.target_user.login_name)
 
     async def test_14_get_catalog(self):
-        catalog = await (
-            self.client.web.get_catalog(ListTemplateType.MasterPageCatalog)
-            .get()
-            .execute_query()
-        )
+        catalog = await self.client.web.get_catalog(ListTemplateType.MasterPageCatalog).get().execute_query()
         self.assertIsNotNone(catalog.title)
 
     async def test_15_get_document_libraries(self):
-        result = await Web.get_document_libraries(
-            self.client, test_site_url
-        ).execute_query()
+        result = await Web.get_document_libraries(self.client, test_site_url).execute_query()
         self.assertGreater(len(result.value), 0)
 
     async def test_16_get_document_and_media_libraries(self):
-        result = await Web.get_document_and_media_libraries(
-            self.client, test_site_url, True
-        ).execute_query()
+        result = await Web.get_document_and_media_libraries(self.client, test_site_url, True).execute_query()
         self.assertGreater(len(result.value), 0)
 
     async def test_17_get_available_web_templates(self):
@@ -151,14 +125,8 @@ class TestSharePointWeb(SPTestCase):
 
     async def test_20_ensure_folder_path(self):
         folder_path = "Shared Documents/Archive/2020/12"
-        folder_new_nested = await self.client.web.ensure_folder_path(
-            folder_path
-        ).execute_query()
-        folder_new_nested = await (
-            self.client.web.get_folder_by_server_relative_url(folder_path)
-            .get()
-            .execute_query()
-        )
+        folder_new_nested = await self.client.web.ensure_folder_path(folder_path).execute_query()
+        folder_new_nested = await self.client.web.get_folder_by_server_relative_url(folder_path).get().execute_query()
         self.assertTrue(folder_new_nested.exists)
 
     async def test_21_get_context_web_theme_data(self):
@@ -176,11 +144,7 @@ class TestSharePointWeb(SPTestCase):
 
     async def test_24_get_list_item_by_path(self):
         page_url = "SitePages/Home.aspx"
-        target_item = (
-            await self.client.web.get_list_item_using_path(page_url)
-            .get()
-            .execute_query()
-        )
+        target_item = await self.client.web.get_list_item_using_path(page_url).get().execute_query()
         self.assertIsNotNone(target_item.resource_path)
 
     async def test_25_parse_datetime(self):

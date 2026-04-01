@@ -18,9 +18,7 @@ class TestExcelFunctions(GraphTestCase):
         path = "{0}/../../data/Financial Sample.xlsx".format(os.path.dirname(__file__))
 
         async def _async_setup():
-            cls.target_item = await cls.client.me.drive.root.upload_file(
-                path
-            ).execute_query()
+            cls.target_item = await cls.client.me.drive.root.upload_file(path).execute_query()
             assert cls.target_item.resource_path is not None
 
         asyncio.run(_async_setup())
@@ -33,9 +31,7 @@ class TestExcelFunctions(GraphTestCase):
         asyncio.run(_async_teardown())
 
     async def test1_get_abs(self):
-        result = await self.__class__.target_item.workbook.functions.abs(
-            -2
-        ).execute_query()
+        result = await self.__class__.target_item.workbook.functions.abs(-2).execute_query()
         self.assertEqual(result.value, 2)
 
     # def test2_get_days(self):
